@@ -4,8 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Talleres de la Asamblea de Cerámica de Mendoza</title>
-  <meta name="description" content="Mapa de talleres de cerámica de Mendoza avalados por la Asamblea de Ceramistas.">
+  <meta name="description" content="Encontrá talleres de cerámica en el Gran Mendoza avalados por la Asamblea de Ceramistas: torno, modelado, esmaltes, alfarería e infancias.">
   <meta name="theme-color" content="#b4532a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 2h8v2.5c0 1-1.5 1.5-1.5 3 4 1.6 6.5 4.6 6.5 8.5 0 4.6-4 7-9 7s-9-2.4-9-7c0-3.9 2.5-6.9 6.5-8.5 0-1.5-1.5-2-1.5-3z' fill='%23b4532a'/%3E%3C/svg%3E">
+
+  <!-- Vista previa al compartir el link (WhatsApp, Instagram, etc.).
+       Cuando el sitio esté publicado, cambiá og-image.png por la dirección completa,
+       por ejemplo: https://tu-usuario.github.io/mapa-talleres/og-image.png -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Talleres de la Asamblea de Cerámica de Mendoza">
+  <meta property="og:description" content="Encontrá talleres de cerámica en el Gran Mendoza: torno, modelado, esmaltes, alfarería e infancias.">
+  <meta property="og:image" content="og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="es_AR">
+  <meta name="twitter:card" content="summary_large_image">
 
   <script>
     // Tema claro/oscuro: lo elegido con el botón, o si no, el del sistema.
@@ -22,8 +35,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 
   <style>
     /* ---------- Colores (modo claro / oscuro) ---------- */
@@ -41,6 +55,11 @@
       --chip-texto: #8f3e1d;
       --en-terracota: #ffffff;
       color-scheme: light;
+
+      /* Grano muy suave, como papel o barro */
+      --textura: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      /* Borde ondulado del header, como el borde de una vasija */
+      --onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='10' viewBox='0 0 48 10'%3E%3Cpath d='M0 0h48v4c-6 0-6 6-12 6s-6-6-12-6-6 6-12 6S6 4 0 4z'/%3E%3C/svg%3E");
     }
 
     :root[data-theme="dark"] {
@@ -63,6 +82,7 @@
 
     /* ---------- Base ---------- */
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     html, body {
       margin: 0;
@@ -94,21 +114,37 @@
       white-space: nowrap;
     }
 
+    .icono { width: 20px; height: 20px; flex: none; }
+
     /* ---------- Header ---------- */
     header {
+      position: relative;
+      z-index: 5;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 16px;
+      padding: 10px 16px 8px;
       padding-top: max(10px, env(safe-area-inset-top));
-      background: var(--terracota);
+      background: var(--textura), var(--terracota);
       color: var(--en-terracota);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      height: 10px;
+      background: var(--terracota);
+      -webkit-mask: var(--onda) repeat-x 0 0 / 48px 10px;
+      mask: var(--onda) repeat-x 0 0 / 48px 10px;
     }
 
     .logo {
       flex: none;
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background: var(--crema);
       display: grid;
@@ -122,15 +158,15 @@
       margin: 0;
       font-family: "Fraunces", Georgia, serif;
       font-weight: 600;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       line-height: 1.2;
     }
 
     .boton-tema {
       flex: none;
       margin-left: auto;
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border: 1.5px solid currentColor;
       border-radius: 50%;
       background: transparent;
@@ -145,20 +181,50 @@
     [data-theme="dark"] .boton-tema .sol { display: block; }
     [data-theme="dark"] .boton-tema .luna { display: none; }
 
+    /* ---------- Bienvenida ---------- */
+    .bienvenida {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 20px 12px 4px 16px;
+      background: var(--textura), var(--crema);
+      color: var(--texto-suave);
+      font-size: .95rem;
+      line-height: 1.45;
+    }
+
+    .bienvenida p { margin: 0; flex: 1; }
+    .bienvenida a { color: var(--terracota-oscuro); font-weight: 700; }
+
+    .cerrar-chico {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      margin-top: -6px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--texto-suave);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .cerrar-chico .icono { width: 18px; height: 18px; }
+
     /* ---------- Filtros ---------- */
     .filtros {
       padding: 10px 16px;
-      background: var(--crema);
+      background: var(--textura), var(--crema);
       border-bottom: 1px solid var(--borde);
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 8px;
+      gap: 10px;
     }
 
-    .fila {
-      display: flex;
-      gap: 8px;
-    }
+    .bienvenida[hidden] + .filtros { padding-top: 22px; }
+
+    .fila { display: flex; gap: 8px; }
 
     .campo {
       flex: 1;
@@ -170,7 +236,20 @@
       background: var(--superficie);
     }
 
-    select.campo { flex: 0 1 42%; }
+    .campo::placeholder { color: var(--texto-suave); opacity: 1; }
+
+    .campo-buscar { position: relative; flex: 1; min-width: 0; display: flex; }
+    .campo-buscar .campo { padding-left: 40px; width: 100%; }
+    .campo-buscar .icono {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--texto-suave);
+      pointer-events: none;
+    }
+
+    select.campo { flex: 0 1 40%; }
 
     .chips {
       display: flex;
@@ -191,7 +270,7 @@
       border-radius: 999px;
       background: var(--superficie);
       color: var(--chip-texto);
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       text-transform: capitalize;
     }
@@ -201,18 +280,64 @@
       color: var(--en-terracota);
     }
 
+    .barra {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
     .contador {
       margin: 0;
       font-size: .9rem;
       color: var(--texto-suave);
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    /* ---------- Mapa ---------- */
+    .vistas {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 999px;
+      background: var(--crema-2);
+    }
+
+    .vistas button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--texto-suave);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .vistas .icono { width: 18px; height: 18px; }
+
+    .vistas button[aria-pressed="true"] {
+      background: var(--superficie);
+      color: var(--terracota-oscuro);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+    }
+
+    [data-theme="dark"] .vistas button[aria-pressed="true"] { background: var(--borde); }
+
+    /* ---------- Contenido: lista + mapa ---------- */
     main {
       position: relative;
       flex: 1;
       min-height: 0;
+    }
+
+    .zona-mapa {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      isolation: isolate;
     }
 
     #mapa {
@@ -221,45 +346,220 @@
       background: var(--crema-2);
     }
 
-    .marcador {
-      background: none;
-      border: 0;
+    /* Controles del mapa con los colores de la página */
+    .leaflet-bar { border: 0 !important; box-shadow: var(--sombra) !important; border-radius: 12px !important; overflow: hidden; }
+    .leaflet-bar a, .leaflet-bar a:hover {
+      width: 40px !important;
+      height: 40px !important;
+      line-height: 40px !important;
+      background: var(--superficie);
+      color: var(--texto);
+      border-color: var(--borde);
     }
+    .leaflet-control-attribution {
+      background: color-mix(in srgb, var(--superficie) 80%, transparent) !important;
+      color: var(--texto-suave);
+    }
+    .leaflet-control-attribution a { color: var(--terracota-oscuro); }
 
-    .marcador svg { display: block; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); }
-    .marcador.activo { z-index: 1000 !important; }
-    .marcador svg { transition: transform .15s; transform-origin: 50% 100%; }
-    .marcador.activo svg { transform: scale(1.25); }
-
-    .aviso {
-      position: absolute;
-      z-index: 500;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: max-content;
-      max-width: calc(100% - 32px);
-      padding: 8px 14px;
+    .boton-ubicar {
+      width: 40px;
+      height: 40px;
+      border: 0;
       border-radius: 12px;
       background: var(--superficie);
+      color: var(--terracota-oscuro);
       box-shadow: var(--sombra);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .boton-ubicar.buscando .icono { animation: girar 1.2s linear infinite; }
+    @keyframes girar { to { transform: rotate(360deg); } }
+
+    .marcador { background: none; border: 0; }
+    .marcador svg { display: block; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); }
+    .marcador svg { transition: transform .15s; transform-origin: 50% 100%; }
+    .marcador:hover svg { transform: scale(1.08); }
+    .marcador.activo { z-index: 1000 !important; }
+    .marcador.activo svg { transform: scale(1.25); }
+
+    .grupo-marcador {
+      display: grid;
+      place-items: center;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--terracota);
+      color: var(--en-terracota);
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+    }
+
+    .mi-posicion {
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: #2f6fde;
+      box-shadow: 0 0 0 0 rgba(47, 111, 222, .5);
+      animation: latido 2s infinite;
+    }
+
+    @keyframes latido {
+      70% { box-shadow: 0 0 0 14px rgba(47, 111, 222, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(47, 111, 222, 0); }
+    }
+
+    /* ---------- Estados vacíos ---------- */
+    .vacio {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      padding: 20px;
+      text-align: center;
+      color: var(--texto-suave);
+    }
+
+    .vacio p { margin: 0; }
+    .vacio .ilustracion { width: 92px; height: 92px; }
+    .vacio .ilus-cuerpo { fill: var(--terracota); }
+    .vacio-titulo { font-family: "Fraunces", Georgia, serif; font-size: 1.15rem; color: var(--texto); }
+    .vacio .boton { margin-top: 8px; padding: 0 22px; }
+
+    #vacio-mapa {
+      position: absolute;
+      z-index: 500;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(320px, calc(100% - 32px));
+      border-radius: 20px;
+      background: var(--superficie);
+      box-shadow: var(--sombra);
+    }
+
+    /* Ilustración de vasija (sin foto y estados vacíos) */
+    .ilus-cuerpo { fill: var(--arcilla); }
+    .ilus-raya { fill: none; stroke: var(--crema); stroke-width: 3.5; stroke-linecap: round; }
+    .ilus-sombra { fill: var(--borde); }
+    .ilus-cara { fill: var(--crema); }
+    .ilus-boca { fill: none; stroke: var(--crema); stroke-width: 2.6; stroke-linecap: round; }
+
+    .sin-foto {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 20%, var(--crema), var(--crema-2) 70%);
+    }
+
+    .sin-foto .ilustracion { width: 70%; height: 70%; }
+
+    /* ---------- Lista ---------- */
+    .lista {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: none;
+      overflow-y: auto;
+      background: var(--textura), var(--crema);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    body[data-vista="lista"] .lista { display: block; }
+
+    .lista-cabecera { display: flex; justify-content: flex-end; padding: 12px 16px 0; }
+
+    .boton-chico {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1.5px solid var(--borde);
+      border-radius: 999px;
+      background: var(--superficie);
+      color: var(--terracota-oscuro);
+      font-weight: 700;
       font-size: .9rem;
+      cursor: pointer;
+    }
+
+    .boton-chico .icono { width: 18px; height: 18px; }
+    .boton-chico[aria-pressed="true"] { border-color: var(--terracota); }
+
+    .lista-items {
+      list-style: none;
+      margin: 0;
+      padding: 12px 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid var(--borde);
+      border-radius: 18px;
+      background: var(--superficie);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .15s, transform .15s;
+    }
+
+    .item:hover { border-color: var(--arcilla); }
+    .item:active { transform: scale(.99); }
+    .item[aria-current="true"] { border-color: var(--terracota); }
+
+    .miniatura {
+      flex: none;
+      width: 76px;
+      height: 76px;
+      border-radius: 14px;
+      object-fit: cover;
+    }
+
+    .item-info { display: grid; gap: 4px; min-width: 0; }
+
+    .item-nombre {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      line-height: 1.2;
+      color: var(--terracota-oscuro);
+    }
+
+    .item-meta { font-size: .85rem; color: var(--texto-suave); }
+    .item .etiquetas { margin: 0; }
+
+    .lista-pie {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      margin: 4px 16px 24px;
+      padding: 22px 20px;
+      border-radius: 20px;
+      background: var(--crema-2);
       text-align: center;
     }
 
-    .aviso[hidden] { display: none; }
+    .lista-pie p { margin: 0; color: var(--texto-suave); }
+    .pie-titulo { font-family: "Fraunces", Georgia, serif; font-size: 1.15rem; color: var(--terracota-oscuro) !important; }
+    .lista-pie .boton { margin-top: 8px; padding: 0 22px; }
 
     /* ---------- Tarjeta (bottom sheet en celu, panel en desktop) ---------- */
     .tarjeta {
       position: fixed;
-      z-index: 1000;
+      z-index: 10;
       left: 0;
       right: 0;
       bottom: 0;
       max-height: 75dvh;
       overflow-y: auto;
+      overscroll-behavior: contain;
       background: var(--superficie);
-      border-radius: 20px 20px 0 0;
+      border-radius: 22px 22px 0 0;
       box-shadow: var(--sombra);
       padding-bottom: env(safe-area-inset-bottom);
       transform: translateY(105%);
@@ -267,10 +567,7 @@
       visibility: hidden;
     }
 
-    .tarjeta.abierta {
-      transform: none;
-      visibility: visible;
-    }
+    .tarjeta.abierta { transform: none; visibility: visible; }
 
     .tarjeta .agarre {
       width: 44px;
@@ -282,17 +579,18 @@
 
     .cerrar {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px;
       z-index: 1;
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border: 0;
       border-radius: 50%;
       background: var(--superficie);
+      color: var(--texto);
       box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
-      font-size: 1.5rem;
-      line-height: 1;
+      display: grid;
+      place-items: center;
       cursor: pointer;
     }
 
@@ -305,36 +603,39 @@
       background: var(--crema-2);
     }
 
-    .tarjeta .cuerpo { padding: 12px 20px 20px; }
+    .tarjeta .foto.sin-foto { display: grid; aspect-ratio: 16 / 6; }
+
+    .tarjeta .cuerpo { padding: 14px 20px 22px; }
 
     .tarjeta h2 {
-      margin: 4px 48px 6px 0;
+      margin: 0 48px 8px 0;
       font-family: "Fraunces", Georgia, serif;
       font-weight: 600;
-      font-size: 1.4rem;
+      font-size: 1.45rem;
+      line-height: 1.2;
       color: var(--terracota-oscuro);
     }
 
-    .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 
     .etiqueta {
       padding: 2px 10px;
       border-radius: 999px;
       background: var(--crema-2);
       color: var(--chip-texto);
-      font-size: .85rem;
+      font-size: .82rem;
       font-weight: 700;
       text-transform: capitalize;
     }
 
-    .datos { margin: 0; display: grid; gap: 8px; }
-    .datos div { display: grid; grid-template-columns: 28px 1fr; gap: 4px; }
-    .datos dt { font-size: 1.1rem; }
-    .datos dd { margin: 0; }
+    .datos { margin: 0; display: grid; gap: 10px; }
+    .datos div { display: grid; grid-template-columns: 28px 1fr; gap: 4px; align-items: start; }
+    .datos dt { color: var(--terracota); padding-top: 1px; }
+    .datos dd { margin: 0; line-height: 1.4; }
 
-    .descripcion { margin: 12px 0 0; line-height: 1.5; color: var(--texto-suave); }
+    .descripcion { margin: 14px 0 0; line-height: 1.55; color: var(--texto-suave); }
 
-    .botones { display: grid; gap: 8px; margin-top: 16px; }
+    .botones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 
     .boton {
       display: flex;
@@ -342,54 +643,101 @@
       justify-content: center;
       gap: 8px;
       min-height: 48px;
-      padding: 0 16px;
+      padding: 0 10px;
       border-radius: 14px;
       border: 1.5px solid var(--terracota);
       color: var(--terracota-oscuro);
       background: var(--superficie);
       font-weight: 700;
+      font-size: .95rem;
       text-decoration: none;
+      cursor: pointer;
     }
 
     .boton.principal {
+      grid-column: 1 / -1;
       background: var(--terracota);
       color: var(--en-terracota);
     }
 
+    .solo-lista { display: none !important; }
+    body[data-vista="lista"] .solo-lista { display: flex !important; }
+
+    /* ---------- Mensajes cortos ---------- */
+    .toast {
+      position: absolute;
+      z-index: 15;
+      top: 12px;
+      left: 50%;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: var(--texto);
+      color: var(--crema);
+      font-weight: 700;
+      font-size: .9rem;
+      text-align: center;
+      box-shadow: var(--sombra);
+      opacity: 0;
+      transform: translate(-50%, -8px);
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+    }
+
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- Desktop ---------- */
     @media (min-width: 800px) {
       header h1 { font-size: 1.4rem; }
+      .bienvenida { padding-left: 24px; padding-right: 20px; }
 
       .filtros {
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
+        padding-left: 24px;
+        padding-right: 24px;
       }
 
-      .filtros .fila { max-width: 560px; }
-      .filtros .contador { grid-column: 2; grid-row: 1; }
+      .filtros .fila { max-width: 580px; }
+      .filtros .barra { grid-column: 2; grid-row: 1; }
       .chips { grid-column: 1 / -1; flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+      .vistas { display: none; }
+
+      .lista {
+        display: block;
+        right: auto;
+        width: 360px;
+        border-right: 1px solid var(--borde);
+      }
+
+      .zona-mapa { left: 360px; }
+      .solo-lista, body[data-vista="lista"] .solo-lista { display: none !important; }
 
       .tarjeta {
+        position: absolute;
         top: 16px;
         right: 16px;
         bottom: auto;
         left: auto;
         width: 380px;
         max-height: calc(100% - 32px);
-        position: absolute;
-        border-radius: 20px;
+        border-radius: 22px;
         transform: translateX(calc(100% + 32px));
       }
 
       .tarjeta .agarre { display: none; }
-      .tarjeta .foto { margin-top: 0; border-radius: 20px 20px 0 0; }
+      .tarjeta .foto { margin-top: 0; border-radius: 22px 22px 0 0; }
+      .toast { left: calc(50% + 180px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .tarjeta, .marcador svg { transition: none; }
+      .tarjeta, .marcador svg, .item, .toast { transition: none; }
+      .mi-posicion, .boton-ubicar.buscando .icono { animation: none; }
     }
   </style>
 </head>
-<body>
+<body data-vista="mapa">
   <header>
     <!-- Logo: poné la URL de la imagen en LOGO_URL (más abajo, en el script) -->
     <div class="logo" id="logo" aria-hidden="true"></div>
@@ -406,31 +754,61 @@
     </button>
   </header>
 
+  <div class="bienvenida" id="bienvenida" hidden>
+    <p id="bienvenida-texto"></p>
+    <button class="cerrar-chico" id="cerrar-bienvenida" type="button" aria-label="Cerrar mensaje" data-icono="cerrar"></button>
+  </div>
+
   <section class="filtros" aria-label="Filtros">
     <div class="fila">
-      <label class="visualmente-oculto" for="buscar">Buscar por nombre o docente</label>
-      <input class="campo" id="buscar" type="search" placeholder="Taller o docente" autocomplete="off">
+      <div class="campo-buscar" data-icono="buscar">
+        <label class="visualmente-oculto" for="buscar">Buscar por nombre o docente</label>
+        <input class="campo" id="buscar" type="search" placeholder="Taller o docente" autocomplete="off">
+      </div>
       <label class="visualmente-oculto" for="departamento">Departamento</label>
       <select class="campo" id="departamento">
         <option value="">Todo Mendoza</option>
       </select>
     </div>
     <div class="chips" id="chips" role="group" aria-label="Tipo de taller"></div>
-    <p class="contador" id="contador" aria-live="polite">Cargando talleres…</p>
+    <div class="barra">
+      <p class="contador" id="contador" aria-live="polite">Cargando talleres…</p>
+      <div class="vistas" role="group" aria-label="Cómo ver los talleres">
+        <button type="button" data-vista="mapa" data-icono="mapa" aria-pressed="true">Mapa</button>
+        <button type="button" data-vista="lista" data-icono="lista" aria-pressed="false">Lista</button>
+      </div>
+    </div>
   </section>
 
   <main>
-    <div id="mapa" aria-label="Mapa de talleres"></div>
-    <p class="aviso" id="aviso" hidden></p>
+    <section class="lista" id="lista" aria-label="Lista de talleres">
+      <div class="lista-cabecera">
+        <button class="boton-chico" id="ordenar-cercania" type="button" data-icono="ubicarme" aria-pressed="false">Ordenar por cercanía</button>
+      </div>
+      <ul class="lista-items" id="lista-items"></ul>
+      <div class="lista-pie" id="lista-pie" hidden>
+        <p class="pie-titulo">¿Das un taller en Mendoza?</p>
+        <p>Completá el formulario y la Asamblea lo revisa para sumarlo al mapa.</p>
+        <a class="boton principal" id="sumar-taller" target="_blank" rel="noopener" data-icono="sumar">Sumar mi taller</a>
+      </div>
+    </section>
+
+    <div class="zona-mapa">
+      <div id="mapa" aria-label="Mapa de talleres"></div>
+      <div id="vacio-mapa" hidden></div>
+    </div>
 
     <article class="tarjeta" id="tarjeta" role="dialog" aria-modal="false" aria-labelledby="tarjeta-nombre">
       <div class="agarre" aria-hidden="true"></div>
-      <button class="cerrar" id="cerrar" type="button" aria-label="Cerrar">&times;</button>
+      <button class="cerrar" id="cerrar" type="button" aria-label="Cerrar" data-icono="cerrar"></button>
       <div id="tarjeta-contenido"></div>
     </article>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <script>
@@ -445,6 +823,12 @@
     // Título que aparece arriba
     const TITULO = 'Talleres de la Asamblea de Cerámica de Mendoza';
 
+    // Mensaje de bienvenida debajo del título (vacío = no se muestra)
+    const BIENVENIDA = 'Talleres avalados por la Asamblea de Ceramistas. Tocá una vasija para conocer cada uno.';
+
+    // Link al Google Form para que nuevos talleres pidan sumarse (vacío = no se muestra)
+    const FORMULARIO_URL = '';
+
     // URL de la imagen del logo (vacío = se muestra una vasija)
     const LOGO_URL = '';
 
@@ -458,6 +842,23 @@
 
     // Zona del Gran Mendoza: Las Heras al norte, Luján y Maipú al sur, Guaymallén al este
     const GRAN_MENDOZA = [[-33.15, -69.00], [-32.75, -68.62]];
+
+    // Nombres alternativos de columnas (por ejemplo, las preguntas del Google Form)
+    const ALIAS_COLUMNAS = {
+      nombre_del_taller: 'nombre',
+      taller: 'nombre',
+      tipo_de_taller: 'tipo',
+      tipos: 'tipo',
+      dias_y_horarios: 'dias_horarios',
+      horarios: 'dias_horarios',
+      horario: 'dias_horarios',
+      foto: 'foto_url',
+      foto_link: 'foto_url',
+      link_de_la_foto: 'foto_url',
+      latitud: 'lat',
+      longitud: 'lng',
+      lon: 'lng'
+    };
 
     const STADIA = 'https://tiles.stadiamaps.com/tiles/';
     const ATRIBUCION_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
@@ -475,11 +876,51 @@
         }
       },
       osm: {
-        claro: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', atribucion: ATRIBUCION_OSM, oscurecer: true }
+        claro: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', atribucion: ATRIBUCION_OSM }
       }
     };
 
     /* ========================================================= */
+
+    // ---------- Íconos ----------
+    const ICONOS = {
+      buscar: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+      cerrar: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+      mapa: '<path d="M9 4.5l-5 2v13l5-2 6 2 5-2v-13l-5 2z"/><path d="M9 4.5v13M15 6.5v13"/>',
+      lista: '<path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01" stroke-width="2.6"/>',
+      persona: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>',
+      ubicacion: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+      reloj: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+      whatsapp: '<path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4A8 8 0 1 1 20 11.5z"/><path d="M9 10.5c.5 2 2.5 4 4.5 4.5"/>',
+      instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.2 6.8h.01" stroke-width="2.6"/>',
+      llegar: '<path d="M12 3l9 9-9 9-9-9z"/><path d="M9.5 14v-3h5M12.5 8.5l2 2.5-2 2.5"/>',
+      compartir: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+      ubicarme: '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',
+      sumar: '<path d="M12 5v14M5 12h14"/>'
+    };
+
+    function svgIcono(nombre) {
+      return `<svg class="icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[nombre]}</svg>`;
+    }
+
+    function nodoIcono(nombre) {
+      const plantilla = document.createElement('template');
+      plantilla.innerHTML = svgIcono(nombre);
+      return plantilla.content.firstElementChild;
+    }
+
+    // Vasija dibujada: para talleres sin foto y, con carita triste, para cuando no hay resultados
+    function ilustracionVasija(triste) {
+      return `<svg class="ilustracion" viewBox="0 0 120 120" aria-hidden="true">
+        <ellipse class="ilus-sombra" cx="60" cy="96" rx="30" ry="4"/>
+        <rect class="ilus-cuerpo" x="45" y="15" width="30" height="7" rx="3"/>
+        <path class="ilus-cuerpo" d="M50 21h20v6c0 2-2 3-2 5 14 4 23 14 23 27 0 17-14 28-31 28S29 76 29 59c0-13 9-23 23-27 0-2-2-3-2-5z"/>
+        <path class="ilus-raya" d="M35 50h50M31 58h58"/>
+        ${triste ? `<circle class="ilus-cara" cx="52" cy="69" r="2.6"/><circle class="ilus-cara" cx="68" cy="69" r="2.6"/>
+        <path class="ilus-boca" d="M54 79q6-4.5 12 0"/>` : ''}
+      </svg>`;
+    }
 
     const ICONO_VASIJA = `
       <svg width="40" height="50" viewBox="0 0 40 50" aria-hidden="true">
@@ -498,88 +939,28 @@
         <path d="M5 14h14M4.6 17.5h14.8" stroke="#fbf5ec" stroke-width="1.4" stroke-linecap="round"/>
       </svg>`;
 
-    // ---------- Header ----------
-    document.getElementById('titulo').textContent = TITULO;
-    document.title = TITULO;
-    const logo = document.getElementById('logo');
-    if (LOGO_URL) {
-      const img = document.createElement('img');
-      img.src = LOGO_URL;
-      img.alt = '';
-      logo.appendChild(img);
-    } else {
-      logo.innerHTML = LOGO_POR_DEFECTO;
-    }
-
-    // ---------- Mapa ----------
-    const mapa = L.map('mapa', {
-      zoomControl: false,
-      minZoom: 10,
-      maxBounds: L.latLngBounds(GRAN_MENDOZA).pad(0.2),
-      maxBoundsViscosity: 0.8
-    }).setView(CENTRO_MENDOZA, 11);
-    L.control.zoom({ position: 'bottomleft' }).addTo(mapa);
-
-    // Capa del mapa: versión clara u oscura según el tema de la página
-    const esOscuro = () => document.documentElement.dataset.theme === 'dark';
-    let capaMapa;
-    let estiloActual = ESTILOS[ESTILO_MAPA] ? ESTILO_MAPA : 'suave';
-    function ponerCapaMapa() {
-      const estilo = ESTILOS[estiloActual];
-      const variante = (esOscuro() && estilo.oscuro) || estilo.claro;
-      if (capaMapa) capaMapa.remove();
-      capaMapa = L.tileLayer(variante.url, {
-        maxZoom: variante.maxZoom ?? 19,
-        attribution: variante.atribucion
-      }).addTo(mapa);
-      mapa.getContainer().classList.toggle('oscurecer', !estilo.oscuro);
-
-      // Si el mapa no carga (por ejemplo, el dominio no está anotado en Stadia), usar OpenStreetMap
-      let errores = 0;
-      capaMapa.on('tileerror', () => {
-        if (estiloActual === 'osm' || ++errores < 3) return;
-        console.warn(`El mapa "${estiloActual}" no carga, uso OpenStreetMap. ¿Está anotado el dominio en stadiamaps.com?`);
-        estiloActual = 'osm';
-        ponerCapaMapa();
-      });
-    }
-    // ---------- Botón de modo claro / oscuro ----------
-    const botonTema = document.getElementById('boton-tema');
-    const metaColor = document.querySelector('meta[name="theme-color"]');
-
-    function aplicarTema(tema) {
-      document.documentElement.dataset.theme = tema;
-      botonTema.setAttribute('aria-label', tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-      metaColor.setAttribute('content', tema === 'dark' ? '#1d1612' : '#b4532a');
-      ponerCapaMapa();
-    }
-
-    aplicarTema(document.documentElement.dataset.theme);
-
-    botonTema.addEventListener('click', () => {
-      const tema = esOscuro() ? 'light' : 'dark';
-      try { localStorage.setItem('tema', tema); } catch (e) {}
-      aplicarTema(tema);
-    });
-
-    // Si la persona nunca tocó el botón, seguir los cambios del sistema
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      let guardado = null;
-      try { guardado = localStorage.getItem('tema'); } catch (err) {}
-      if (!guardado) aplicarTema(e.matches ? 'dark' : 'light');
-    });
-
-    const icono = L.divIcon({
-      className: 'marcador',
-      html: ICONO_VASIJA,
-      iconSize: [40, 50],
-      iconAnchor: [20, 49]
-    });
+    // Poner los íconos de los botones fijos de la página
+    document.querySelectorAll('[data-icono]').forEach(nodo => nodo.prepend(nodoIcono(nodo.dataset.icono)));
 
     // ---------- Utilidades ----------
+    const esCelular = () => window.matchMedia('(max-width: 799px)').matches;
+
+    function leerGuardado(clave) {
+      try { return localStorage.getItem(clave); } catch (e) { return null; }
+    }
+
+    function guardar(clave, valor) {
+      try { localStorage.setItem(clave, valor); } catch (e) {}
+    }
+
     // Minúsculas, sin tildes ni espacios sobrantes: "Sí " -> "si"
     function normalizar(texto) {
       return String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+    }
+
+    // "Taller Tierra Cruda" -> "taller-tierra-cruda" (para el link de cada taller)
+    function hacerSlug(texto) {
+      return normalizar(texto).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'taller';
     }
 
     // Acepta "-32.89", "-32,89" (coma decimal) y devuelve un número o NaN
@@ -635,6 +1016,18 @@
       return /^https?:\/\//i.test(texto) ? texto : '';
     }
 
+    function distanciaKm([lat1, lng1], [lat2, lng2]) {
+      const r = Math.PI / 180;
+      const h = Math.sin((lat2 - lat1) * r / 2) ** 2 +
+        Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lng2 - lng1) * r / 2) ** 2;
+      return 12742 * Math.asin(Math.sqrt(h));
+    }
+
+    function formatoDistancia(km) {
+      if (km < 1) return `a ${Math.max(50, Math.round(km * 20) * 50)} m`;
+      return `a ${km.toFixed(1).replace('.', ',')} km`;
+    }
+
     function el(etiqueta, atributos = {}, ...hijos) {
       const nodo = document.createElement(etiqueta);
       for (const [clave, valor] of Object.entries(atributos)) {
@@ -649,26 +1042,173 @@
       return nodo;
     }
 
+    // Foto del taller, o una vasija dibujada si no tiene (o si el link está roto)
+    function imagenTaller(taller, clase, alt) {
+      const relleno = () => {
+        const caja = el('div', { class: `${clase} sin-foto`, 'aria-hidden': 'true' });
+        caja.innerHTML = ilustracionVasija(false);
+        return caja;
+      };
+      const url = urlSegura(taller.datos.foto_url);
+      if (!url) return relleno();
+      const img = el('img', { class: clase, src: url, alt, loading: 'lazy' });
+      img.addEventListener('error', () => img.replaceWith(relleno()));
+      return img;
+    }
+
+    const toast = document.getElementById('toast');
+    let esperaToast;
+    function mostrarMensaje(texto) {
+      toast.textContent = texto;
+      toast.classList.add('visible');
+      clearTimeout(esperaToast);
+      esperaToast = setTimeout(() => toast.classList.remove('visible'), 3500);
+    }
+
+    // ---------- Header y bienvenida ----------
+    document.getElementById('titulo').textContent = TITULO;
+    document.title = TITULO;
+    const logo = document.getElementById('logo');
+    if (LOGO_URL) {
+      logo.append(el('img', { src: LOGO_URL, alt: '' }));
+    } else {
+      logo.innerHTML = LOGO_POR_DEFECTO;
+    }
+
+    const bienvenida = document.getElementById('bienvenida');
+    if (BIENVENIDA && !leerGuardado('bienvenida-cerrada')) {
+      const texto = document.getElementById('bienvenida-texto');
+      texto.append(BIENVENIDA);
+      if (FORMULARIO_URL) {
+        texto.append(' ', el('a', { href: FORMULARIO_URL, target: '_blank', rel: 'noopener' }, '¿Das un taller? Sumalo'));
+      }
+      bienvenida.hidden = false;
+    }
+    document.getElementById('cerrar-bienvenida').addEventListener('click', () => {
+      bienvenida.hidden = true;
+      guardar('bienvenida-cerrada', '1');
+      mapa.invalidateSize();
+    });
+
+    if (FORMULARIO_URL) {
+      document.getElementById('sumar-taller').href = FORMULARIO_URL;
+      document.getElementById('lista-pie').hidden = false;
+    }
+
+    // ---------- Mapa ----------
+    const mapa = L.map('mapa', {
+      zoomControl: false,
+      minZoom: 10,
+      maxBounds: L.latLngBounds(GRAN_MENDOZA).pad(0.2),
+      maxBoundsViscosity: 0.8
+    }).setView(CENTRO_MENDOZA, 11);
+    L.control.zoom({ position: 'bottomleft', zoomInTitle: 'Acercar', zoomOutTitle: 'Alejar' }).addTo(mapa);
+
+    // Capa del mapa: versión clara u oscura según el tema de la página
+    const esOscuro = () => document.documentElement.dataset.theme === 'dark';
+    let capaMapa;
+    let estiloActual = ESTILOS[ESTILO_MAPA] ? ESTILO_MAPA : 'suave';
+    function ponerCapaMapa() {
+      const estilo = ESTILOS[estiloActual];
+      const variante = (esOscuro() && estilo.oscuro) || estilo.claro;
+      if (capaMapa) capaMapa.remove();
+      capaMapa = L.tileLayer(variante.url, {
+        maxZoom: variante.maxZoom ?? 19,
+        attribution: variante.atribucion
+      }).addTo(mapa);
+      mapa.getContainer().classList.toggle('oscurecer', !estilo.oscuro);
+
+      // Si el mapa no carga (por ejemplo, el dominio no está anotado en Stadia), usar OpenStreetMap
+      let errores = 0;
+      capaMapa.on('tileerror', () => {
+        if (estiloActual === 'osm' || ++errores < 3) return;
+        console.warn(`El mapa "${estiloActual}" no carga, uso OpenStreetMap. ¿Está anotado el dominio en stadiamaps.com?`);
+        estiloActual = 'osm';
+        ponerCapaMapa();
+      });
+    }
+
+    // ---------- Botón de modo claro / oscuro ----------
+    const botonTema = document.getElementById('boton-tema');
+    const metaColor = document.querySelector('meta[name="theme-color"]');
+
+    function aplicarTema(tema) {
+      document.documentElement.dataset.theme = tema;
+      botonTema.setAttribute('aria-label', tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+      metaColor.setAttribute('content', tema === 'dark' ? '#1d1612' : '#b4532a');
+      ponerCapaMapa();
+    }
+
+    aplicarTema(document.documentElement.dataset.theme);
+
+    botonTema.addEventListener('click', () => {
+      const tema = esOscuro() ? 'light' : 'dark';
+      guardar('tema', tema);
+      aplicarTema(tema);
+    });
+
+    // Si la persona nunca tocó el botón, seguir los cambios del sistema
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!leerGuardado('tema')) aplicarTema(e.matches ? 'dark' : 'light');
+    });
+
+    // ---------- Marcadores (se agrupan cuando están muy cerca) ----------
+    const iconoMarcador = L.divIcon({
+      className: 'marcador',
+      html: ICONO_VASIJA,
+      iconSize: [40, 50],
+      iconAnchor: [20, 49]
+    });
+
+    const grupo = L.markerClusterGroup
+      ? L.markerClusterGroup({
+          showCoverageOnHover: false,
+          maxClusterRadius: 40,
+          spiderfyOnMaxZoom: true,
+          iconCreateFunction: cluster => L.divIcon({
+            className: 'grupo-marcador',
+            html: `<span>${cluster.getChildCount()}</span>`,
+            iconSize: [46, 46]
+          })
+        })
+      : L.featureGroup();
+    grupo.addTo(mapa);
+
+    // Abre los grupos que hagan falta para que se vea el marcador del taller
+    function mostrarMarcador(taller, listo) {
+      if (grupo.zoomToShowLayer) grupo.zoomToShowLayer(taller.marcador, listo);
+      else listo();
+    }
+
+    // Mueve el mapa para que el taller no quede tapado por la tarjeta
+    function enfocar(coords, soloSiTapado) {
+      const tam = mapa.getSize();
+      const punto = mapa.latLngToContainerPoint(coords);
+      const objetivo = esCelular()
+        ? L.point(tam.x / 2, tam.y * 0.22)
+        : L.point((tam.x - 400) / 2, tam.y / 2);
+      const tapado = esCelular() ? punto.y > tam.y * 0.32 : punto.x > tam.x - 420;
+      if (!soloSiTapado || tapado) mapa.panBy(punto.subtract(objetivo));
+    }
+
     // ---------- Tarjeta ----------
     const tarjeta = document.getElementById('tarjeta');
     const tarjetaContenido = document.getElementById('tarjeta-contenido');
     let tallerAbierto = null;
+    let volverFoco = null;
 
-    function abrirTarjeta(taller) {
-      if (tallerAbierto) tallerAbierto.marcador.getElement()?.classList.remove('activo');
+    function marcarActivo(taller, activo) {
+      taller.marcador.getElement()?.classList.toggle('activo', activo);
+      taller.itemLista?.setAttribute('aria-current', activo ? 'true' : 'false');
+    }
+
+    function abrirTarjeta(taller, origen) {
+      if (tallerAbierto) marcarActivo(tallerAbierto, false);
       tallerAbierto = taller;
-      taller.marcador.getElement()?.classList.add('activo');
+      volverFoco = origen ?? null;
+      marcarActivo(taller, true);
 
       const t = taller.datos;
-      const contenido = [];
-
-      const foto = urlSegura(t.foto_url);
-      if (foto) {
-        const img = el('img', { class: 'foto', src: foto, alt: `Foto del taller ${t.nombre}`, loading: 'lazy' });
-        img.addEventListener('error', () => img.remove());
-        contenido.push(img);
-      }
-
       const cuerpo = el('div', { class: 'cuerpo' },
         el('h2', { id: 'tarjeta-nombre' }, t.nombre),
         el('div', { class: 'etiquetas' }, ...taller.tipos.map(tipo => el('span', { class: 'etiqueta' }, nombreTipo(tipo))))
@@ -678,12 +1218,12 @@
       const agregarDato = (icono, nombre, valor) => {
         if (!String(valor ?? '').trim()) return;
         datos.append(el('div', {},
-          el('dt', { title: nombre }, el('span', { 'aria-hidden': 'true' }, icono), el('span', { class: 'visualmente-oculto' }, nombre)),
+          el('dt', { title: nombre }, nodoIcono(icono), el('span', { class: 'visualmente-oculto' }, nombre)),
           el('dd', {}, valor.trim())));
       };
-      agregarDato('👩‍🏫', 'Docente', t.docente);
-      agregarDato('📍', 'Dirección', [t.direccion, t.departamento].filter(v => v && v.trim()).join(', '));
-      agregarDato('🕒', 'Días y horarios', t.dias_horarios);
+      agregarDato('persona', 'Docente', t.docente);
+      agregarDato('ubicacion', 'Dirección', [t.direccion, t.departamento].filter(v => v && v.trim()).join(', '));
+      agregarDato('reloj', 'Días y horarios', t.dias_horarios);
       cuerpo.append(datos);
 
       if (t.descripcion && t.descripcion.trim()) {
@@ -691,55 +1231,113 @@
       }
 
       const botones = el('div', { class: 'botones' });
+      const enlace = (clase, href, icono, texto) =>
+        el('a', { class: clase, href, target: '_blank', rel: 'noopener' }, nodoIcono(icono), texto);
+
       const wa = linkWhatsapp(t.whatsapp);
-      if (wa) botones.append(el('a', { class: 'boton principal', href: wa, target: '_blank', rel: 'noopener' }, '💬 Escribir por WhatsApp'));
+      if (wa) botones.append(enlace('boton principal', wa, 'whatsapp', 'Escribir por WhatsApp'));
       const ig = linkInstagram(t.instagram);
-      if (ig) botones.append(el('a', { class: 'boton', href: ig, target: '_blank', rel: 'noopener' }, '📷 Ver Instagram'));
+      if (ig) botones.append(enlace('boton', ig, 'instagram', 'Instagram'));
       const [lat, lng] = taller.coords;
-      botones.append(el('a', {
-        class: 'boton',
-        href: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-        target: '_blank',
-        rel: 'noopener'
-      }, '🧭 Cómo llegar'));
+      botones.append(enlace('boton', `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, 'llegar', 'Cómo llegar'));
+
+      const compartir = el('button', { class: 'boton', type: 'button' }, nodoIcono('compartir'), 'Compartir');
+      compartir.addEventListener('click', () => compartirTaller(taller));
+      botones.append(compartir);
+
+      const verEnMapa = el('button', { class: 'boton solo-lista', type: 'button' }, nodoIcono('mapa'), 'Ver en el mapa');
+      verEnMapa.addEventListener('click', () => {
+        ponerVista('mapa');
+        mostrarMarcador(taller, () => {
+          marcarActivo(taller, true);
+          enfocar(taller.coords);
+        });
+      });
+      botones.append(verEnMapa);
       cuerpo.append(botones);
 
-      contenido.push(cuerpo);
-      tarjetaContenido.replaceChildren(...contenido);
+      tarjetaContenido.replaceChildren(imagenTaller(taller, 'foto', `Foto del taller ${t.nombre}`), cuerpo);
       tarjeta.scrollTop = 0;
       tarjeta.classList.add('abierta');
       document.getElementById('cerrar').focus({ preventScroll: true });
-
-      // En celular, mover el mapa para que el marcador no quede tapado por la tarjeta
-      if (window.matchMedia('(max-width: 799px)').matches) {
-        const punto = mapa.latLngToContainerPoint(taller.coords);
-        const alto = mapa.getSize().y;
-        const objetivo = alto * 0.25;
-        if (punto.y > objetivo) mapa.panBy([0, punto.y - objetivo]);
-      }
+      history.replaceState(null, '', '#' + taller.slug);
     }
 
     function cerrarTarjeta() {
       if (!tallerAbierto) return;
-      tallerAbierto.marcador.getElement()?.classList.remove('activo');
-      const marcador = tallerAbierto.marcador.getElement();
+      marcarActivo(tallerAbierto, false);
+      const foco = volverFoco ?? tallerAbierto.marcador.getElement();
       tallerAbierto = null;
       tarjeta.classList.remove('abierta');
-      marcador?.focus({ preventScroll: true });
+      history.replaceState(null, '', location.pathname + location.search);
+      if (foco?.isConnected) foco.focus({ preventScroll: true });
+    }
+
+    async function compartirTaller(taller) {
+      const url = location.origin + location.pathname + '#' + taller.slug;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: taller.datos.nombre, text: `${taller.datos.nombre}, taller de cerámica en Mendoza`, url });
+        } catch (e) { /* la persona canceló */ }
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        mostrarMensaje('Link copiado. Ya lo podés pegar donde quieras.');
+      } catch (e) {
+        window.prompt('Copiá este link:', url);
+      }
     }
 
     document.getElementById('cerrar').addEventListener('click', cerrarTarjeta);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarTarjeta(); });
     mapa.on('click', cerrarTarjeta);
 
-    // ---------- Filtros ----------
+    // En celular, deslizar la tarjeta hacia abajo la cierra
+    let inicioY = null;
+    let deltaY = 0;
+    tarjeta.addEventListener('touchstart', e => {
+      inicioY = esCelular() && tarjeta.scrollTop <= 0 ? e.touches[0].clientY : null;
+      deltaY = 0;
+    }, { passive: true });
+    tarjeta.addEventListener('touchmove', e => {
+      if (inicioY === null) return;
+      deltaY = e.touches[0].clientY - inicioY;
+      if (deltaY > 0) {
+        e.preventDefault();
+        tarjeta.style.transition = 'none';
+        tarjeta.style.transform = `translateY(${deltaY}px)`;
+      }
+    }, { passive: false });
+    tarjeta.addEventListener('touchend', () => {
+      if (inicioY === null) return;
+      tarjeta.style.transition = '';
+      tarjeta.style.transform = '';
+      if (deltaY > 90) cerrarTarjeta();
+      inicioY = null;
+    });
+
+    // ---------- Vistas: mapa / lista ----------
+    const botonesVista = document.querySelectorAll('.vistas button');
+
+    function ponerVista(vista) {
+      document.body.dataset.vista = vista;
+      botonesVista.forEach(b => b.setAttribute('aria-pressed', b.dataset.vista === vista));
+    }
+
+    botonesVista.forEach(b => b.addEventListener('click', () => ponerVista(b.dataset.vista)));
+
+    // ---------- Filtros y lista ----------
     const buscar = document.getElementById('buscar');
     const selectDepto = document.getElementById('departamento');
     const chips = document.getElementById('chips');
     const contador = document.getElementById('contador');
-    const aviso = document.getElementById('aviso');
+    const vacioMapa = document.getElementById('vacio-mapa');
+    const listaItems = document.getElementById('lista-items');
 
     let talleres = [];
+    let visibles = [];
+    let miPosicion = null;
     const tiposActivos = new Set();
 
     function armarFiltros() {
@@ -766,30 +1364,92 @@
         .forEach(([clave, nombre]) => selectDepto.append(el('option', { value: clave }, nombre)));
     }
 
+    function limpiarFiltros() {
+      buscar.value = '';
+      selectDepto.value = '';
+      tiposActivos.clear();
+      chips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
+      aplicarFiltros(true);
+    }
+
+    function estadoVacio({ titulo, texto, limpiar }) {
+      const caja = el('div', { class: 'vacio' });
+      caja.innerHTML = ilustracionVasija(true);
+      caja.append(el('p', { class: 'vacio-titulo' }, titulo));
+      if (texto) caja.append(el('p', {}, texto));
+      if (limpiar) {
+        const boton = el('button', { class: 'boton', type: 'button' }, 'Limpiar filtros');
+        boton.addEventListener('click', limpiarFiltros);
+        caja.append(boton);
+      }
+      return caja;
+    }
+
+    function mostrarVacio(opciones) {
+      vacioMapa.hidden = !opciones;
+      if (!opciones) return;
+      vacioMapa.replaceChildren(estadoVacio(opciones));
+      listaItems.replaceChildren(el('li', {}, estadoVacio(opciones)));
+    }
+
+    function ordenados(lista) {
+      return [...lista].sort(miPosicion
+        ? (a, b) => a.distancia - b.distancia
+        : (a, b) => a.datos.nombre.localeCompare(b.datos.nombre, 'es'));
+    }
+
+    function armarLista() {
+      listaItems.replaceChildren(...ordenados(visibles).map(taller => {
+        const t = taller.datos;
+        const meta = [t.departamento?.trim(), miPosicion ? formatoDistancia(taller.distancia) : ''].filter(Boolean).join(' · ');
+        const boton = el('button', { class: 'item', type: 'button', 'aria-current': taller === tallerAbierto ? 'true' : 'false' },
+          imagenTaller(taller, 'miniatura', ''),
+          el('span', { class: 'item-info' },
+            el('span', { class: 'item-nombre' }, t.nombre),
+            meta ? el('span', { class: 'item-meta' }, meta) : null,
+            el('span', { class: 'etiquetas' }, ...taller.tipos.map(tipo => el('span', { class: 'etiqueta' }, nombreTipo(tipo))))
+          ));
+        boton.addEventListener('click', () => {
+          if (esCelular()) {
+            abrirTarjeta(taller, boton);
+          } else {
+            mostrarMarcador(taller, () => {
+              abrirTarjeta(taller, boton);
+              enfocar(taller.coords);
+            });
+          }
+        });
+        taller.itemLista = boton;
+        return el('li', {}, boton);
+      }));
+    }
+
     function aplicarFiltros(reencuadrar) {
       const texto = normalizar(buscar.value);
       const depto = selectDepto.value;
-      const visibles = [];
 
-      for (const t of talleres) {
-        const coincide =
-          (!texto || t.textoBusqueda.includes(texto)) &&
-          (!depto || normalizar(t.datos.departamento) === depto) &&
-          (tiposActivos.size === 0 || t.tipos.some(tipo => tiposActivos.has(tipo)));
+      visibles = talleres.filter(t =>
+        (!texto || t.textoBusqueda.includes(texto)) &&
+        (!depto || normalizar(t.datos.departamento) === depto) &&
+        (tiposActivos.size === 0 || t.tipos.some(tipo => tiposActivos.has(tipo))));
 
-        if (coincide) {
-          t.marcador.addTo(mapa);
-          visibles.push(t);
-        } else {
-          t.marcador.remove();
-          if (tallerAbierto === t) cerrarTarjeta();
-        }
-      }
+      if (tallerAbierto && !visibles.includes(tallerAbierto)) cerrarTarjeta();
+
+      grupo.clearLayers();
+      if (grupo.addLayers) grupo.addLayers(visibles.map(t => t.marcador));
+      else visibles.forEach(t => grupo.addLayer(t.marcador));
 
       const n = visibles.length;
       contador.textContent = n === 1 ? '1 taller' : `${n} talleres`;
-      aviso.hidden = n > 0 || talleres.length === 0;
-      if (n === 0) aviso.textContent = 'No hay talleres con esos filtros.';
+
+      if (talleres.length === 0) {
+        mostrarVacio({ titulo: 'Todavía no hay talleres', texto: 'Pronto vamos a sumar los talleres aprobados por la Asamblea.' });
+      } else if (n === 0) {
+        mostrarVacio({ titulo: 'No encontramos talleres', texto: 'Probá con otra búsqueda o sacá algún filtro.', limpiar: true });
+      } else {
+        mostrarVacio(null);
+        armarLista();
+      }
 
       if (reencuadrar) encuadrar(visibles);
     }
@@ -810,6 +1470,83 @@
     });
     selectDepto.addEventListener('change', () => aplicarFiltros(true));
 
+    // ---------- Cerca mío ----------
+    let marcadorYo = null;
+    const ordenarCercania = document.getElementById('ordenar-cercania');
+
+    const ControlUbicar = L.Control.extend({
+      onAdd() {
+        const boton = L.DomUtil.create('button', 'boton-ubicar');
+        boton.type = 'button';
+        boton.title = 'Talleres cerca mío';
+        boton.setAttribute('aria-label', 'Mostrar talleres cerca mío');
+        boton.append(nodoIcono('ubicarme'));
+        L.DomEvent.disableClickPropagation(boton);
+        L.DomEvent.on(boton, 'click', () => ubicarme(true));
+        return boton;
+      }
+    });
+    const botonUbicar = new ControlUbicar({ position: 'bottomleft' }).addTo(mapa).getContainer();
+
+    ordenarCercania.addEventListener('click', () => ubicarme(false));
+
+    function ubicarme(moverMapa) {
+      if (!navigator.geolocation) {
+        mostrarMensaje('Tu navegador no permite saber dónde estás.');
+        return;
+      }
+      botonUbicar.classList.add('buscando');
+      navigator.geolocation.getCurrentPosition(pos => {
+        botonUbicar.classList.remove('buscando');
+        miPosicion = [pos.coords.latitude, pos.coords.longitude];
+        talleres.forEach(t => { t.distancia = distanciaKm(miPosicion, t.coords); });
+
+        if (!marcadorYo) {
+          marcadorYo = L.marker(miPosicion, {
+            icon: L.divIcon({ className: 'mi-posicion', iconSize: [20, 20] }),
+            interactive: false,
+            keyboard: false,
+            zIndexOffset: 1000
+          }).addTo(mapa);
+        } else {
+          marcadorYo.setLatLng(miPosicion);
+        }
+
+        ordenarCercania.setAttribute('aria-pressed', 'true');
+        ordenarCercania.lastChild.textContent = 'Ordenado por cercanía';
+        aplicarFiltros(false);
+
+        const cercano = ordenados(visibles)[0];
+        if (!mapa.options.maxBounds.contains(miPosicion)) {
+          mostrarMensaje('Parece que no estás en el Gran Mendoza. Igual ordenamos la lista por distancia.');
+          return;
+        }
+        if (moverMapa) {
+          const cercanos = ordenados(visibles).slice(0, 3).map(t => t.coords);
+          mapa.fitBounds(L.latLngBounds([miPosicion, ...cercanos]), { padding: [60, 60], maxZoom: 15 });
+        }
+        if (cercano) mostrarMensaje(`El más cercano: ${cercano.datos.nombre}, ${formatoDistancia(cercano.distancia)}`);
+      }, () => {
+        botonUbicar.classList.remove('buscando');
+        mostrarMensaje('No pudimos saber dónde estás. Revisá el permiso de ubicación.');
+      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }
+
+    // ---------- Link de cada taller (#nombre-del-taller) ----------
+    function abrirDesdeLink() {
+      const slug = decodeURIComponent(location.hash.slice(1));
+      const taller = talleres.find(t => t.slug === slug);
+      if (!taller) return;
+      if (!visibles.includes(taller)) limpiarFiltros();
+      mapa.setView(taller.coords, 15, { animate: false });
+      mostrarMarcador(taller, () => {
+        abrirTarjeta(taller);
+        enfocar(taller.coords);
+      });
+    }
+
+    window.addEventListener('hashchange', abrirDesdeLink);
+
     // ---------- Carga de datos ----------
     function leerCsv(url) {
       return new Promise((resolver, rechazar) => {
@@ -817,7 +1554,10 @@
           download: true,
           header: true,
           skipEmptyLines: 'greedy',
-          transformHeader: h => normalizar(h).replace(/\s+/g, '_'),
+          transformHeader: h => {
+            const clave = normalizar(h).replace(/[()]/g, '').replace(/\s+/g, '_');
+            return ALIAS_COLUMNAS[clave] ?? clave;
+          },
           complete: resultado => {
             if (!resultado.meta.fields || !resultado.meta.fields.includes('nombre')) {
               rechazar(new Error('El CSV no tiene la columna "nombre"'));
@@ -844,6 +1584,7 @@
     }
 
     function procesar(filas) {
+      const slugsUsados = new Set();
       filas.forEach((fila, i) => {
         const numeroFila = i + 2; // +1 por el encabezado, +1 porque las planillas empiezan en 1
         if (normalizar(fila.aprobado) !== 'si') return;
@@ -863,20 +1604,26 @@
           return clave;
         });
 
+        let slug = hacerSlug(fila.nombre);
+        for (let n = 2; slugsUsados.has(slug); n++) slug = `${hacerSlug(fila.nombre)}-${n}`;
+        slugsUsados.add(slug);
+
         const taller = {
           datos: fila,
           coords,
           tipos,
+          slug,
           textoBusqueda: normalizar(`${fila.nombre} ${fila.docente}`)
         };
         taller.marcador = L.marker(coords, {
-          icon: icono,
+          icon: iconoMarcador,
           title: fila.nombre,
           alt: `Taller ${fila.nombre}`,
           keyboard: true
         }).on('click', e => {
           L.DomEvent.stopPropagation(e);
           abrirTarjeta(taller);
+          enfocar(taller.coords, true);
         });
         talleres.push(taller);
       });
@@ -893,17 +1640,12 @@
         }
         armarFiltros();
         aplicarFiltros(true);
-        if (talleres.length === 0) {
-          contador.textContent = '0 talleres';
-          aviso.textContent = 'Todavía no hay talleres aprobados para mostrar.';
-          aviso.hidden = false;
-        }
+        abrirDesdeLink();
       })
       .catch(error => {
         console.error('No se pudieron cargar los talleres.', error);
-        contador.textContent = 'No se pudieron cargar los talleres.';
-        aviso.textContent = 'No se pudieron cargar los talleres. Probá recargar la página.';
-        aviso.hidden = false;
+        contador.textContent = 'Sin conexión con los talleres';
+        mostrarVacio({ titulo: 'No pudimos cargar los talleres', texto: 'Probá recargar la página en un ratito.' });
       });
   </script>
 </body>

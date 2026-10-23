@@ -45,7 +45,7 @@ Los talleres se cargan desde una **planilla de Google**: para agregar, cambiar o
    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/....../pub?output=csv';
    ```
 
-   En esa misma zona también podés cambiar el **título** (`TITULO`) y poner el **logo** (`LOGO_URL`, el link a una imagen).
+   En esa misma zona también podés cambiar el **título** (`TITULO`), el **mensaje de bienvenida** (`BIENVENIDA`; si lo dejás vacío no aparece) y poner el **logo** (`LOGO_URL`, el link a una imagen).
 
    Ahí mismo está `ESTILO_MAPA`, que define cómo se ve el mapa:
 
@@ -80,15 +80,36 @@ Si una fila tiene coordenadas mal cargadas, ese taller no aparece en el mapa, pe
 - Solo aparecen en el mapa los talleres con **`si`** en la columna `aprobado`. Da igual si escribís "si", "Sí" o "SI".
 - Para sacar un taller sin borrarlo, cambiá `si` por `no` o dejá la celda vacía.
 
-## 5. Subir el sitio a GitHub Pages
+## 5. Formulario para que se sumen talleres (opcional)
+
+Con un Google Form, cada docente puede pedir sumarse y los datos caen directo en una planilla. La Asamblea solo revisa y aprueba.
+
+1. Entrá a [forms.google.com](https://forms.google.com) y creá un formulario con estas preguntas (los títulos tienen que ser estos):
+   **Nombre del taller**, **Tipo de taller**, **Docente**, **Dirección**, **Departamento**, **Días y horarios**, **Instagram**, **WhatsApp**, **Foto (link)**, **Descripción**.
+2. En la pestaña **Respuestas**, tocá **Vincular con Hojas de cálculo** para que las respuestas se guarden en una planilla.
+3. En esa planilla, agregá a la derecha tres columnas más: **lat**, **lng** y **aprobado**. Las completa la Asamblea al revisar cada taller (ver puntos 3 y 4).
+4. Publicá **esa** hoja como CSV (punto 2) y usá ese link en `SHEET_CSV_URL`.
+5. Copiá el link del formulario (botón **Enviar**, ícono de link) y pegalo en `FORMULARIO_URL`, en `index.html`.
+
+Así aparece un botón "Sumar mi taller" al final de la lista y un link en el mensaje de bienvenida. Lo que la gente manda no se ve en el mapa hasta que alguien de la Asamblea escribe `si` en `aprobado`.
+
+## 6. Compartir un taller
+
+Cada taller tiene su propio link, que abre el mapa con ese taller ya seleccionado. Se consigue con el botón **Compartir** de la tarjeta, y sirve para que cada docente lo ponga en su Instagram o para nombrarlo en una publicación.
+
+El link sale del nombre del taller (por ejemplo `.../#taller-tierra-cruda`), así que si se le cambia el nombre en la planilla, el link viejo deja de abrirlo.
+
+## 7. Subir el sitio a GitHub Pages
 
 1. Creá una cuenta en [github.com](https://github.com) si no tenés.
 2. Creá un repositorio nuevo (botón **New**), por ejemplo `mapa-talleres`, y marcalo como **Public**.
-3. Tocá **uploading an existing file** y arrastrá `index.html`, `talleres-ejemplo.csv` y `README.md`. Después tocá **Commit changes**.
+3. Tocá **uploading an existing file** y arrastrá `index.html`, `talleres-ejemplo.csv`, `og-image.png` y `README.md`. Después tocá **Commit changes**.
 4. Andá a **Settings → Pages**. En "Branch" elegí **main** y la carpeta **/ (root)**, y tocá **Save**.
 5. Al rato (1 o 2 minutos) aparece el link del mapa, del estilo `https://tu-usuario.github.io/mapa-talleres/`. Ese es el link para poner en Instagram.
+6. Para que el link se vea lindo al compartirlo (con la imagen `og-image.png`), abrí `index.html` y, cerca del principio, cambiá `content="og-image.png"` por la dirección completa, por ejemplo `content="https://tu-usuario.github.io/mapa-talleres/og-image.png"`.
+7. Anotá el dominio en Stadia Maps (ver punto 2) para que se vea el mapa suave.
 
-Para cambiar el título, el logo o el link de la planilla más adelante: en GitHub abrí `index.html`, tocá el lápiz ✏️, editá y tocá **Commit changes**.
+Para cambiar el título, el logo, la bienvenida o los links más adelante: en GitHub abrí `index.html`, tocá el ícono del lápiz, editá y tocá **Commit changes**.
 
 ---
 
