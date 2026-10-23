@@ -1100,6 +1100,7 @@
     const mapa = L.map('mapa', {
       zoomControl: false,
       minZoom: 10,
+      maxZoom: 19,
       maxBounds: L.latLngBounds(GRAN_MENDOZA).pad(0.2),
       maxBoundsViscosity: 0.8
     }).setView(CENTRO_MENDOZA, 11);
