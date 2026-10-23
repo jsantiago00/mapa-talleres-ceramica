@@ -855,6 +855,8 @@
       horario: 'dias_horarios',
       foto: 'foto_url',
       foto_link: 'foto_url',
+      foto_del_taller: 'foto_url',
+      fotos: 'foto_url',
       link_de_la_foto: 'foto_url',
       latitud: 'lat',
       longitud: 'lng',
@@ -1050,11 +1052,31 @@
         caja.innerHTML = ilustracionVasija(false);
         return caja;
       };
-      const url = urlSegura(taller.datos.foto_url);
-      if (!url) return relleno();
-      const img = el('img', { class: clase, src: url, alt, loading: 'lazy' });
-      img.addEventListener('error', () => img.replaceWith(relleno()));
+      const fuentes = fuentesFoto(taller.datos.foto_url);
+      if (!fuentes.length) return relleno();
+      const img = el('img', { class: clase, src: fuentes[0], alt, loading: 'lazy', referrerpolicy: 'no-referrer' });
+      let intento = 0;
+      img.addEventListener('error', () => {
+        intento++;
+        if (intento < fuentes.length) img.src = fuentes[intento];
+        else img.replaceWith(relleno());
+      });
       return img;
+    }
+
+    // Direcciones posibles de la foto. Los links de Google Drive (los que deja la pregunta
+    // "Subir archivo" del formulario, o el link para compartir) se pasan a la imagen directa.
+    function fuentesFoto(valor) {
+      const primera = String(valor ?? '').trim().split(/[\s,]+/)[0];
+      const id = primera.match(/(?:drive|docs)\.google\.com\/(?:file\/d\/|open\?(?:.*&)?id=|uc\?(?:.*&)?id=|thumbnail\?(?:.*&)?id=)([\w-]{10,})/)?.[1];
+      if (id) {
+        return [
+          `https://lh3.googleusercontent.com/d/${id}=w1200`,
+          `https://drive.google.com/thumbnail?id=${id}&sz=w1200`
+        ];
+      }
+      const url = urlSegura(primera);
+      return url ? [url] : [];
     }
 
     const toast = document.getElementById('toast');

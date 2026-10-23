@@ -28,7 +28,7 @@ Los talleres se cargan desde una **planilla de Google**: para agregar, cambiar o
    | dias_horarios | Texto libre | Lunes y miércoles 18 a 20 h |
    | instagram | El usuario, con o sin @ | @tierracruda |
    | whatsapp | El número con característica | 261 555-0001 |
-   | foto_url | Link a una foto (opcional) | https://… |
+   | foto_url | Link a una foto (opcional, ver punto 5) | https://… |
    | descripcion | Unas líneas sobre el taller | Clases para principiantes… |
    | aprobado | `si` o `no` (ver punto 4) | si |
 
@@ -97,7 +97,13 @@ Ojo si no usás el script: con la planilla en formato argentino, un número con 
 Con un Google Form, cada docente puede pedir sumarse y los datos caen directo en una planilla. La Asamblea solo revisa y aprueba.
 
 1. Entrá a [forms.google.com](https://forms.google.com) y creá un formulario con estas preguntas (los títulos tienen que ser estos):
-   **Nombre del taller**, **Tipo de taller**, **Docente**, **Dirección**, **Departamento**, **Días y horarios**, **Instagram**, **WhatsApp**, **Foto (link)**, **Descripción**.
+   **Nombre del taller**, **Tipo de taller**, **Docente**, **Dirección**, **Departamento**, **Días y horarios**, **Instagram**, **WhatsApp**, **Foto**, **Descripción**.
+
+   Para **Foto**, usá el tipo de pregunta **Subir archivo**: permití solo **Imagen**, máximo **1 archivo** y 10 MB. Así cada docente sube la foto desde el celular. Dos cosas a tener en cuenta:
+   - Para subir archivos, Google pide que quien completa el formulario tenga cuenta de Google.
+   - Las fotos se guardan en tu Drive, en una carpeta con el nombre del formulario y "(File responses)". **Compartí esa carpeta** una vez como "Cualquier persona con el enlace: Lector". Si no, las fotos son privadas y en el mapa aparece la vasija dibujada en su lugar.
+
+   La foto también puede ser un link: el de una imagen en internet (que termine en `.jpg`, `.png`, etc.) o el link para compartir de Google Drive, que el mapa convierte solo. Los links de Instagram y de Google Fotos **no funcionan**, porque no son imágenes sino páginas.
 2. En la pestaña **Respuestas**, tocá **Vincular con Hojas de cálculo** para que las respuestas se guarden en una planilla.
 3. En esa planilla, agregá a la derecha tres columnas más: **lat**, **lng** y **aprobado**. Las completa la Asamblea al revisar cada taller (ver puntos 3 y 4).
 4. **No publiques la hoja de respuestas**: tiene los correos de quienes completan el formulario y los talleres sin aprobar, y lo publicado lo puede ver cualquiera. En su lugar, creá una pestaña nueva llamada `mapa` y escribí en la celda A1:
