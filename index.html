@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Talleres de la Asamblea de Cerámica de Mendoza</title>
+  <meta name="description" content="Mapa de talleres de cerámica de Mendoza avalados por la Asamblea de Ceramistas.">
+  <meta name="theme-color" content="#b4532a">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+
+  <style>
+    /* ---------- Colores (modo claro / oscuro) ---------- */
+    :root {
+      --terracota: #b4532a;
+      --terracota-oscuro: #8f3e1d;
+      --arcilla: #d9a07a;
+      --crema: #fbf5ec;
+      --crema-2: #f3e6d6;
+      --superficie: #ffffff;
+      --texto: #2e211a;
+      --texto-suave: #6b5446;
+      --borde: #e3d2c0;
+      --sombra: 0 6px 24px rgba(70, 35, 15, .18);
+      --chip-texto: #8f3e1d;
+      --en-terracota: #ffffff;
+      color-scheme: light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --terracota: #e0875c;
+        --terracota-oscuro: #f0a57f;
+        --arcilla: #a8704f;
+        --crema: #1d1612;
+        --crema-2: #2a201a;
+        --superficie: #261d17;
+        --texto: #f5e9dc;
+        --texto-suave: #cdb7a5;
+        --borde: #4a3a2f;
+        --sombra: 0 6px 24px rgba(0, 0, 0, .5);
+        --chip-texto: #f0a57f;
+        --en-terracota: #1d1612;
+        color-scheme: dark;
+      }
+      .oscurecer .leaflet-tile-pane { filter: brightness(.75) contrast(1.1) saturate(.7); }
+    }
+
+    /* ---------- Base ---------- */
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--crema);
+      color: var(--texto);
+      font-family: "Nunito", system-ui, sans-serif;
+      font-size: 16px;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+
+    :focus-visible {
+      outline: 3px solid var(--terracota);
+      outline-offset: 2px;
+    }
+
+    .visualmente-oculto {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    /* ---------- Header ---------- */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      padding-top: max(10px, env(safe-area-inset-top));
+      background: var(--terracota);
+      color: var(--en-terracota);
+    }
+
+    .logo {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--crema);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    header h1 {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      line-height: 1.2;
+    }
+
+    /* ---------- Filtros ---------- */
+    .filtros {
+      padding: 10px 16px;
+      background: var(--crema);
+      border-bottom: 1px solid var(--borde);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .fila {
+      display: flex;
+      gap: 8px;
+    }
+
+    .campo {
+      flex: 1;
+      min-width: 0;
+      height: 44px;
+      padding: 0 12px;
+      border: 1.5px solid var(--borde);
+      border-radius: 12px;
+      background: var(--superficie);
+    }
+
+    select.campo { flex: 0 1 42%; }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -16px;
+      padding: 2px 16px;
+    }
+
+    .chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex: none;
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1.5px solid var(--terracota);
+      border-radius: 999px;
+      background: var(--superficie);
+      color: var(--chip-texto);
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: capitalize;
+    }
+
+    .chip[aria-pressed="true"] {
+      background: var(--terracota);
+      color: var(--en-terracota);
+    }
+
+    .contador {
+      margin: 0;
+      font-size: .9rem;
+      color: var(--texto-suave);
+      font-weight: 600;
+    }
+
+    /* ---------- Mapa ---------- */
+    main {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    #mapa {
+      position: absolute;
+      inset: 0;
+      background: var(--crema-2);
+    }
+
+    .marcador {
+      background: none;
+      border: 0;
+    }
+
+    .marcador svg { display: block; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); }
+    .marcador.activo { z-index: 1000 !important; }
+    .marcador svg { transition: transform .15s; transform-origin: 50% 100%; }
+    .marcador.activo svg { transform: scale(1.25); }
+
+    .aviso {
+      position: absolute;
+      z-index: 500;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: calc(100% - 32px);
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: var(--superficie);
+      box-shadow: var(--sombra);
+      font-size: .9rem;
+      text-align: center;
+    }
+
+    .aviso[hidden] { display: none; }
+
+    /* ---------- Tarjeta (bottom sheet en celu, panel en desktop) ---------- */
+    .tarjeta {
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 75dvh;
+      overflow-y: auto;
+      background: var(--superficie);
+      border-radius: 20px 20px 0 0;
+      box-shadow: var(--sombra);
+      padding-bottom: env(safe-area-inset-bottom);
+      transform: translateY(105%);
+      transition: transform .25s ease;
+      visibility: hidden;
+    }
+
+    .tarjeta.abierta {
+      transform: none;
+      visibility: visible;
+    }
+
+    .tarjeta .agarre {
+      width: 44px;
+      height: 5px;
+      margin: 8px auto 0;
+      border-radius: 3px;
+      background: var(--borde);
+    }
+
+    .cerrar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--superficie);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .tarjeta .foto {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      margin-top: 8px;
+      background: var(--crema-2);
+    }
+
+    .tarjeta .cuerpo { padding: 12px 20px 20px; }
+
+    .tarjeta h2 {
+      margin: 4px 48px 6px 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 1.4rem;
+      color: var(--terracota-oscuro);
+    }
+
+    .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+    .etiqueta {
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--crema-2);
+      color: var(--chip-texto);
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .datos { margin: 0; display: grid; gap: 8px; }
+    .datos div { display: grid; grid-template-columns: 28px 1fr; gap: 4px; }
+    .datos dt { font-size: 1.1rem; }
+    .datos dd { margin: 0; }
+
+    .descripcion { margin: 12px 0 0; line-height: 1.5; color: var(--texto-suave); }
+
+    .botones { display: grid; gap: 8px; margin-top: 16px; }
+
+    .boton {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--terracota);
+      color: var(--terracota-oscuro);
+      background: var(--superficie);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .boton.principal {
+      background: var(--terracota);
+      color: var(--en-terracota);
+    }
+
+    @media (min-width: 800px) {
+      header h1 { font-size: 1.4rem; }
+
+      .filtros {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+      }
+
+      .filtros .fila { max-width: 560px; }
+      .filtros .contador { grid-column: 2; grid-row: 1; }
+      .chips { grid-column: 1 / -1; flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+
+      .tarjeta {
+        top: 16px;
+        right: 16px;
+        bottom: auto;
+        left: auto;
+        width: 380px;
+        max-height: calc(100% - 32px);
+        position: absolute;
+        border-radius: 20px;
+        transform: translateX(calc(100% + 32px));
+      }
+
+      .tarjeta .agarre { display: none; }
+      .tarjeta .foto { margin-top: 0; border-radius: 20px 20px 0 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tarjeta, .marcador svg { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Logo: poné la URL de la imagen en LOGO_URL (más abajo, en el script) -->
+    <div class="logo" id="logo" aria-hidden="true"></div>
+    <h1 id="titulo">Talleres de la Asamblea de Cerámica de Mendoza</h1>
+  </header>
+
+  <section class="filtros" aria-label="Filtros">
+    <div class="fila">
+      <label class="visualmente-oculto" for="buscar">Buscar por nombre o docente</label>
+      <input class="campo" id="buscar" type="search" placeholder="Taller o docente" autocomplete="off">
+      <label class="visualmente-oculto" for="departamento">Departamento</label>
+      <select class="campo" id="departamento">
+        <option value="">Todo Mendoza</option>
+      </select>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Tipo de taller"></div>
+    <p class="contador" id="contador" aria-live="polite">Cargando talleres…</p>
+  </section>
+
+  <main>
+    <div id="mapa" aria-label="Mapa de talleres"></div>
+    <p class="aviso" id="aviso" hidden></p>
+
+    <article class="tarjeta" id="tarjeta" role="dialog" aria-modal="false" aria-labelledby="tarjeta-nombre">
+      <div class="agarre" aria-hidden="true"></div>
+      <button class="cerrar" id="cerrar" type="button" aria-label="Cerrar">&times;</button>
+      <div id="tarjeta-contenido"></div>
+    </article>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <script>
+    /* =========================================================
+       CONFIGURACIÓN — esto es lo único que hace falta tocar
+       ========================================================= */
+
+    // URL del Google Sheet publicado como CSV (ver README).
+    // Si queda vacía o falla, se usa talleres-ejemplo.csv
+    const SHEET_CSV_URL = '';
+
+    // Título que aparece arriba
+    const TITULO = 'Talleres de la Asamblea de Cerámica de Mendoza';
+
+    // URL de la imagen del logo (vacío = se muestra una vasija)
+    const LOGO_URL = '';
+
+    // Estilo del mapa: 'voyager' (cálido, recomendado), 'positron' (minimalista),
+    // 'acuarela' (pintado a mano, hay que registrar el sitio en Stadia Maps) u 'osm' (clásico)
+    const ESTILO_MAPA = 'voyager';
+
+    const CSV_LOCAL = 'talleres-ejemplo.csv';
+    const CENTRO_MENDOZA = [-32.89, -68.83];
+
+    // Zona del Gran Mendoza: Las Heras al norte, Luján y Maipú al sur, Guaymallén al este
+    const GRAN_MENDOZA = [[-33.15, -69.00], [-32.75, -68.62]];
+
+    const CARTO = 'https://{s}.basemaps.cartocdn.com/rastertiles/';
+    const ATRIBUCION_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    const ATRIBUCION_CARTO = ATRIBUCION_OSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    const ESTILOS = {
+      voyager: {
+        claro: { url: CARTO + 'voyager/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO },
+        oscuro: { url: CARTO + 'dark_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO }
+      },
+      positron: {
+        claro: { url: CARTO + 'light_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO },
+        oscuro: { url: CARTO + 'dark_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO }
+      },
+      acuarela: {
+        claro: {
+          url: 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg',
+          atribucion: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a> ' + ATRIBUCION_OSM,
+          maxZoom: 16
+        }
+      },
+      osm: {
+        claro: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', atribucion: ATRIBUCION_OSM, oscurecer: true }
+      }
+    };
+
+    /* ========================================================= */
+
+    const ICONO_VASIJA = `
+      <svg width="40" height="50" viewBox="0 0 40 50" aria-hidden="true">
+        <path d="M20 49 C 14 41, 2 32, 2 19 A 18 18 0 0 1 38 19 C 38 32, 26 41, 20 49 Z"
+              style="fill: var(--terracota)" stroke="#fff" stroke-width="2"/>
+        <path d="M15 9 h10 v2.5 c0 1 -1.5 1.5 -1.5 3 c4 1.6 6 4.6 6 8 c0 4.6 -4 7.5 -9.5 7.5
+                 s-9.5 -2.9 -9.5 -7.5 c0 -3.4 2 -6.4 6 -8 c0 -1.5 -1.5 -2 -1.5 -3 z"
+              fill="#fbf5ec"/>
+        <path d="M12.2 21 h15.6 M11.5 25 h17" stroke="#d9a07a" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>`;
+
+    const LOGO_POR_DEFECTO = `
+      <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 2h8v2.5c0 1-1.5 1.5-1.5 3 4 1.6 6.5 4.6 6.5 8.5 0 4.6-4 7-9 7s-9-2.4-9-7c0-3.9 2.5-6.9 6.5-8.5 0-1.5-1.5-2-1.5-3z"
+              fill="#b4532a"/>
+        <path d="M5 14h14M4.6 17.5h14.8" stroke="#fbf5ec" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>`;
+
+    // ---------- Header ----------
+    document.getElementById('titulo').textContent = TITULO;
+    document.title = TITULO;
+    const logo = document.getElementById('logo');
+    if (LOGO_URL) {
+      const img = document.createElement('img');
+      img.src = LOGO_URL;
+      img.alt = '';
+      logo.appendChild(img);
+    } else {
+      logo.innerHTML = LOGO_POR_DEFECTO;
+    }
+
+    // ---------- Mapa ----------
+    const mapa = L.map('mapa', {
+      zoomControl: false,
+      minZoom: 10,
+      maxBounds: L.latLngBounds(GRAN_MENDOZA).pad(0.2),
+      maxBoundsViscosity: 0.8
+    }).setView(CENTRO_MENDOZA, 11);
+    L.control.zoom({ position: 'bottomleft' }).addTo(mapa);
+
+    // Capa del mapa: cambia sola entre la versión clara y la oscura según el celular
+    const modoOscuro = window.matchMedia('(prefers-color-scheme: dark)');
+    let capaMapa;
+    function ponerCapaMapa() {
+      const estilo = ESTILOS[ESTILO_MAPA] ?? ESTILOS.voyager;
+      const variante = (modoOscuro.matches && estilo.oscuro) || estilo.claro;
+      if (capaMapa) capaMapa.remove();
+      capaMapa = L.tileLayer(variante.url, {
+        maxZoom: variante.maxZoom ?? 19,
+        subdomains: 'abcd',
+        attribution: variante.atribucion
+      }).addTo(mapa);
+      mapa.getContainer().classList.toggle('oscurecer', !estilo.oscuro);
+    }
+    ponerCapaMapa();
+    modoOscuro.addEventListener('change', ponerCapaMapa);
+
+    const icono = L.divIcon({
+      className: 'marcador',
+      html: ICONO_VASIJA,
+      iconSize: [40, 50],
+      iconAnchor: [20, 49]
+    });
+
+    // ---------- Utilidades ----------
+    // Minúsculas, sin tildes ni espacios sobrantes: "Sí " -> "si"
+    function normalizar(texto) {
+      return String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+    }
+
+    // Acepta "-32.89", "-32,89" (coma decimal) y devuelve un número o NaN
+    function numero(valor) {
+      const texto = String(valor ?? '').trim();
+      if (!texto) return NaN;
+      return Number(texto.includes('.') ? texto : texto.replace(',', '.'));
+    }
+
+    function coordenadas(fila) {
+      let lat = numero(fila.lat);
+      let lng = numero(fila.lng);
+
+      // Si pegaron "-32.89, -68.83" (como lo copia Google Maps) todo en la columna lat
+      const par = String(fila.lat ?? '').match(/^\s*(-?\d+(?:\.\d+)?)\s*[,;]\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (par && !String(fila.lng ?? '').trim()) {
+        lat = Number(par[1]);
+        lng = Number(par[2]);
+      }
+
+      const valido = Number.isFinite(lat) && Number.isFinite(lng) &&
+        Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0);
+      return valido ? [lat, lng] : null;
+    }
+
+    function separarTipos(texto) {
+      return String(texto ?? '').split(/[,;\/]/).map(t => t.trim()).filter(Boolean);
+    }
+
+    // Para mostrar cada tipo como se escribió por primera vez ("alfarería"), aunque se compare sin tildes
+    const nombresTipos = new Map();
+    const nombreTipo = clave => nombresTipos.get(clave) ?? clave;
+
+    function linkInstagram(valor) {
+      const texto = String(valor ?? '').trim();
+      if (!texto) return '';
+      if (/^https?:\/\//i.test(texto)) return texto;
+      return 'https://instagram.com/' + encodeURIComponent(texto.replace(/^@/, ''));
+    }
+
+    // Devuelve un link wa.me. Acepta "261 555-0001", "+54 9 261 555-0001", "0261 15 555-0001", etc.
+    function linkWhatsapp(valor) {
+      let num = String(valor ?? '').replace(/\D/g, '').replace(/^0+/, '');
+      if (!num) return '';
+      if (num.startsWith('54')) num = num.slice(2).replace(/^9/, '');
+      // Formato local con 15: 261 15 5550001 -> 261 5550001 (característica de Mendoza)
+      if (num.length === 12 && num.startsWith('26115')) num = '261' + num.slice(5);
+      return 'https://wa.me/549' + num;
+    }
+
+    function urlSegura(valor) {
+      const texto = String(valor ?? '').trim();
+      return /^https?:\/\//i.test(texto) ? texto : '';
+    }
+
+    function el(etiqueta, atributos = {}, ...hijos) {
+      const nodo = document.createElement(etiqueta);
+      for (const [clave, valor] of Object.entries(atributos)) {
+        if (valor === undefined || valor === null || valor === false) continue;
+        if (clave === 'class') nodo.className = valor;
+        else nodo.setAttribute(clave, valor);
+      }
+      for (const hijo of hijos) {
+        if (hijo === null || hijo === undefined || hijo === '') continue;
+        nodo.append(hijo);
+      }
+      return nodo;
+    }
+
+    // ---------- Tarjeta ----------
+    const tarjeta = document.getElementById('tarjeta');
+    const tarjetaContenido = document.getElementById('tarjeta-contenido');
+    let tallerAbierto = null;
+
+    function abrirTarjeta(taller) {
+      if (tallerAbierto) tallerAbierto.marcador.getElement()?.classList.remove('activo');
+      tallerAbierto = taller;
+      taller.marcador.getElement()?.classList.add('activo');
+
+      const t = taller.datos;
+      const contenido = [];
+
+      const foto = urlSegura(t.foto_url);
+      if (foto) {
+        const img = el('img', { class: 'foto', src: foto, alt: `Foto del taller ${t.nombre}`, loading: 'lazy' });
+        img.addEventListener('error', () => img.remove());
+        contenido.push(img);
+      }
+
+      const cuerpo = el('div', { class: 'cuerpo' },
+        el('h2', { id: 'tarjeta-nombre' }, t.nombre),
+        el('div', { class: 'etiquetas' }, ...taller.tipos.map(tipo => el('span', { class: 'etiqueta' }, nombreTipo(tipo))))
+      );
+
+      const datos = el('dl', { class: 'datos' });
+      const agregarDato = (icono, nombre, valor) => {
+        if (!String(valor ?? '').trim()) return;
+        datos.append(el('div', {},
+          el('dt', { title: nombre }, el('span', { 'aria-hidden': 'true' }, icono), el('span', { class: 'visualmente-oculto' }, nombre)),
+          el('dd', {}, valor.trim())));
+      };
+      agregarDato('👩‍🏫', 'Docente', t.docente);
+      agregarDato('📍', 'Dirección', [t.direccion, t.departamento].filter(v => v && v.trim()).join(', '));
+      agregarDato('🕒', 'Días y horarios', t.dias_horarios);
+      cuerpo.append(datos);
+
+      if (t.descripcion && t.descripcion.trim()) {
+        cuerpo.append(el('p', { class: 'descripcion' }, t.descripcion.trim()));
+      }
+
+      const botones = el('div', { class: 'botones' });
+      const wa = linkWhatsapp(t.whatsapp);
+      if (wa) botones.append(el('a', { class: 'boton principal', href: wa, target: '_blank', rel: 'noopener' }, '💬 Escribir por WhatsApp'));
+      const ig = linkInstagram(t.instagram);
+      if (ig) botones.append(el('a', { class: 'boton', href: ig, target: '_blank', rel: 'noopener' }, '📷 Ver Instagram'));
+      const [lat, lng] = taller.coords;
+      botones.append(el('a', {
+        class: 'boton',
+        href: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+        target: '_blank',
+        rel: 'noopener'
+      }, '🧭 Cómo llegar'));
+      cuerpo.append(botones);
+
+      contenido.push(cuerpo);
+      tarjetaContenido.replaceChildren(...contenido);
+      tarjeta.scrollTop = 0;
+      tarjeta.classList.add('abierta');
+      document.getElementById('cerrar').focus({ preventScroll: true });
+
+      // En celular, mover el mapa para que el marcador no quede tapado por la tarjeta
+      if (window.matchMedia('(max-width: 799px)').matches) {
+        const punto = mapa.latLngToContainerPoint(taller.coords);
+        const alto = mapa.getSize().y;
+        const objetivo = alto * 0.25;
+        if (punto.y > objetivo) mapa.panBy([0, punto.y - objetivo]);
+      }
+    }
+
+    function cerrarTarjeta() {
+      if (!tallerAbierto) return;
+      tallerAbierto.marcador.getElement()?.classList.remove('activo');
+      const marcador = tallerAbierto.marcador.getElement();
+      tallerAbierto = null;
+      tarjeta.classList.remove('abierta');
+      marcador?.focus({ preventScroll: true });
+    }
+
+    document.getElementById('cerrar').addEventListener('click', cerrarTarjeta);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarTarjeta(); });
+    mapa.on('click', cerrarTarjeta);
+
+    // ---------- Filtros ----------
+    const buscar = document.getElementById('buscar');
+    const selectDepto = document.getElementById('departamento');
+    const chips = document.getElementById('chips');
+    const contador = document.getElementById('contador');
+    const aviso = document.getElementById('aviso');
+
+    let talleres = [];
+    const tiposActivos = new Set();
+
+    function armarFiltros() {
+      const tipos = [...new Set(talleres.flatMap(t => t.tipos))].sort((a, b) => nombreTipo(a).localeCompare(nombreTipo(b), 'es'));
+      chips.replaceChildren(...tipos.map(tipo => {
+        const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': 'false' }, nombreTipo(tipo));
+        chip.addEventListener('click', () => {
+          tiposActivos.has(tipo) ? tiposActivos.delete(tipo) : tiposActivos.add(tipo);
+          chip.setAttribute('aria-pressed', tiposActivos.has(tipo));
+          aplicarFiltros(true);
+        });
+        return chip;
+      }));
+      chips.hidden = tipos.length === 0;
+
+      // Departamentos: se agrupan sin importar tildes/mayúsculas y se muestra el primero escrito
+      const deptos = new Map();
+      for (const t of talleres) {
+        const clave = normalizar(t.datos.departamento);
+        if (clave && !deptos.has(clave)) deptos.set(clave, t.datos.departamento.trim());
+      }
+      [...deptos.entries()]
+        .sort((a, b) => a[1].localeCompare(b[1], 'es'))
+        .forEach(([clave, nombre]) => selectDepto.append(el('option', { value: clave }, nombre)));
+    }
+
+    function aplicarFiltros(reencuadrar) {
+      const texto = normalizar(buscar.value);
+      const depto = selectDepto.value;
+      const visibles = [];
+
+      for (const t of talleres) {
+        const coincide =
+          (!texto || t.textoBusqueda.includes(texto)) &&
+          (!depto || normalizar(t.datos.departamento) === depto) &&
+          (tiposActivos.size === 0 || t.tipos.some(tipo => tiposActivos.has(tipo)));
+
+        if (coincide) {
+          t.marcador.addTo(mapa);
+          visibles.push(t);
+        } else {
+          t.marcador.remove();
+          if (tallerAbierto === t) cerrarTarjeta();
+        }
+      }
+
+      const n = visibles.length;
+      contador.textContent = n === 1 ? '1 taller' : `${n} talleres`;
+      aviso.hidden = n > 0 || talleres.length === 0;
+      if (n === 0) aviso.textContent = 'No hay talleres con esos filtros.';
+
+      if (reencuadrar) encuadrar(visibles);
+    }
+
+    function encuadrar(lista) {
+      if (lista.length === 0) return;
+      if (lista.length === 1) {
+        mapa.setView(lista[0].coords, 15);
+      } else {
+        mapa.fitBounds(L.latLngBounds(lista.map(t => t.coords)), { padding: [40, 40], maxZoom: 15 });
+      }
+    }
+
+    let espera;
+    buscar.addEventListener('input', () => {
+      clearTimeout(espera);
+      espera = setTimeout(() => aplicarFiltros(true), 200);
+    });
+    selectDepto.addEventListener('change', () => aplicarFiltros(true));
+
+    // ---------- Carga de datos ----------
+    function leerCsv(url) {
+      return new Promise((resolver, rechazar) => {
+        Papa.parse(url, {
+          download: true,
+          header: true,
+          skipEmptyLines: 'greedy',
+          transformHeader: h => normalizar(h).replace(/\s+/g, '_'),
+          complete: resultado => {
+            if (!resultado.meta.fields || !resultado.meta.fields.includes('nombre')) {
+              rechazar(new Error('El CSV no tiene la columna "nombre"'));
+            } else {
+              resolver(resultado.data);
+            }
+          },
+          error: rechazar
+        });
+      });
+    }
+
+    async function cargarFilas() {
+      if (SHEET_CSV_URL) {
+        try {
+          // Se agrega un parámetro para que el navegador no use una copia vieja
+          const url = SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+          return await leerCsv(url);
+        } catch (error) {
+          console.warn('No se pudo cargar el Google Sheet, uso el CSV de ejemplo.', error);
+        }
+      }
+      return leerCsv(CSV_LOCAL);
+    }
+
+    function procesar(filas) {
+      filas.forEach((fila, i) => {
+        const numeroFila = i + 2; // +1 por el encabezado, +1 porque las planillas empiezan en 1
+        if (normalizar(fila.aprobado) !== 'si') return;
+        if (!String(fila.nombre ?? '').trim()) {
+          console.warn(`Fila ${numeroFila}: sin nombre, se saltea.`, fila);
+          return;
+        }
+        const coords = coordenadas(fila);
+        if (!coords) {
+          console.warn(`Fila ${numeroFila} ("${fila.nombre}"): lat/lng inválidos (lat="${fila.lat}", lng="${fila.lng}"), se saltea.`);
+          return;
+        }
+
+        const tipos = separarTipos(fila.tipo).map(tipo => {
+          const clave = normalizar(tipo);
+          if (!nombresTipos.has(clave)) nombresTipos.set(clave, tipo.toLowerCase());
+          return clave;
+        });
+
+        const taller = {
+          datos: fila,
+          coords,
+          tipos,
+          textoBusqueda: normalizar(`${fila.nombre} ${fila.docente}`)
+        };
+        taller.marcador = L.marker(coords, {
+          icon: icono,
+          title: fila.nombre,
+          alt: `Taller ${fila.nombre}`,
+          keyboard: true
+        }).on('click', e => {
+          L.DomEvent.stopPropagation(e);
+          abrirTarjeta(taller);
+        });
+        talleres.push(taller);
+      });
+    }
+
+    cargarFilas()
+      .then(filas => {
+        procesar(filas);
+        // Si hay talleres fuera del Gran Mendoza, agrandar la zona permitida para que se vean
+        if (talleres.length) {
+          const zona = L.latLngBounds(GRAN_MENDOZA);
+          talleres.forEach(t => zona.extend(t.coords));
+          mapa.setMaxBounds(zona.pad(0.2));
+        }
+        armarFiltros();
+        aplicarFiltros(true);
+        if (talleres.length === 0) {
+          contador.textContent = '0 talleres';
+          aviso.textContent = 'Todavía no hay talleres aprobados para mostrar.';
+          aviso.hidden = false;
+        }
+      })
+      .catch(error => {
+        console.error('No se pudieron cargar los talleres.', error);
+        contador.textContent = 'No se pudieron cargar los talleres.';
+        aviso.textContent = 'No se pudieron cargar los talleres. Probá recargar la página.';
+        aviso.hidden = false;
+      });
+  </script>
+</body>
+</html>
