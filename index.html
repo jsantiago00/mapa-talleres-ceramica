@@ -7,6 +7,19 @@
   <meta name="description" content="Mapa de talleres de cerámica de Mendoza avalados por la Asamblea de Ceramistas.">
   <meta name="theme-color" content="#b4532a">
 
+  <script>
+    // Tema claro/oscuro: lo elegido con el botón, o si no, el del sistema.
+    // Va acá arriba para que la página no "parpadee" en el tema equivocado al cargar.
+    (function () {
+      let tema = null;
+      try { tema = localStorage.getItem('tema'); } catch (e) {}
+      if (tema !== 'light' && tema !== 'dark') {
+        tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = tema;
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Nunito:wght@400;600;700&display=swap">
@@ -30,24 +43,23 @@
       color-scheme: light;
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --terracota: #e0875c;
-        --terracota-oscuro: #f0a57f;
-        --arcilla: #a8704f;
-        --crema: #1d1612;
-        --crema-2: #2a201a;
-        --superficie: #261d17;
-        --texto: #f5e9dc;
-        --texto-suave: #cdb7a5;
-        --borde: #4a3a2f;
-        --sombra: 0 6px 24px rgba(0, 0, 0, .5);
-        --chip-texto: #f0a57f;
-        --en-terracota: #1d1612;
-        color-scheme: dark;
-      }
-      .oscurecer .leaflet-tile-pane { filter: brightness(.75) contrast(1.1) saturate(.7); }
+    :root[data-theme="dark"] {
+      --terracota: #e0875c;
+      --terracota-oscuro: #f0a57f;
+      --arcilla: #a8704f;
+      --crema: #1d1612;
+      --crema-2: #2a201a;
+      --superficie: #261d17;
+      --texto: #f5e9dc;
+      --texto-suave: #cdb7a5;
+      --borde: #4a3a2f;
+      --sombra: 0 6px 24px rgba(0, 0, 0, .5);
+      --chip-texto: #f0a57f;
+      --en-terracota: #1d1612;
+      color-scheme: dark;
     }
+
+    [data-theme="dark"] .oscurecer .leaflet-tile-pane { filter: brightness(.75) contrast(1.1) saturate(.7); }
 
     /* ---------- Base ---------- */
     * { box-sizing: border-box; }
@@ -113,6 +125,25 @@
       font-size: 1.15rem;
       line-height: 1.2;
     }
+
+    .boton-tema {
+      flex: none;
+      margin-left: auto;
+      width: 44px;
+      height: 44px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .boton-tema svg { width: 22px; height: 22px; }
+    .boton-tema .sol { display: none; }
+    [data-theme="dark"] .boton-tema .sol { display: block; }
+    [data-theme="dark"] .boton-tema .luna { display: none; }
 
     /* ---------- Filtros ---------- */
     .filtros {
@@ -363,6 +394,16 @@
     <!-- Logo: poné la URL de la imagen en LOGO_URL (más abajo, en el script) -->
     <div class="logo" id="logo" aria-hidden="true"></div>
     <h1 id="titulo">Talleres de la Asamblea de Cerámica de Mendoza</h1>
+    <button class="boton-tema" id="boton-tema" type="button" aria-label="Cambiar a modo oscuro">
+      <svg class="luna" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor"/>
+      </svg>
+      <svg class="sol" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
+        <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
   </header>
 
   <section class="filtros" aria-label="Filtros">
@@ -479,13 +520,13 @@
     }).setView(CENTRO_MENDOZA, 11);
     L.control.zoom({ position: 'bottomleft' }).addTo(mapa);
 
-    // Capa del mapa: cambia sola entre la versión clara y la oscura según el celular
-    const modoOscuro = window.matchMedia('(prefers-color-scheme: dark)');
+    // Capa del mapa: versión clara u oscura según el tema de la página
+    const esOscuro = () => document.documentElement.dataset.theme === 'dark';
     let capaMapa;
     let estiloActual = ESTILOS[ESTILO_MAPA] ? ESTILO_MAPA : 'suave';
     function ponerCapaMapa() {
       const estilo = ESTILOS[estiloActual];
-      const variante = (modoOscuro.matches && estilo.oscuro) || estilo.claro;
+      const variante = (esOscuro() && estilo.oscuro) || estilo.claro;
       if (capaMapa) capaMapa.remove();
       capaMapa = L.tileLayer(variante.url, {
         maxZoom: variante.maxZoom ?? 19,
@@ -502,8 +543,31 @@
         ponerCapaMapa();
       });
     }
-    ponerCapaMapa();
-    modoOscuro.addEventListener('change', ponerCapaMapa);
+    // ---------- Botón de modo claro / oscuro ----------
+    const botonTema = document.getElementById('boton-tema');
+    const metaColor = document.querySelector('meta[name="theme-color"]');
+
+    function aplicarTema(tema) {
+      document.documentElement.dataset.theme = tema;
+      botonTema.setAttribute('aria-label', tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+      metaColor.setAttribute('content', tema === 'dark' ? '#1d1612' : '#b4532a');
+      ponerCapaMapa();
+    }
+
+    aplicarTema(document.documentElement.dataset.theme);
+
+    botonTema.addEventListener('click', () => {
+      const tema = esOscuro() ? 'light' : 'dark';
+      try { localStorage.setItem('tema', tema); } catch (e) {}
+      aplicarTema(tema);
+    });
+
+    // Si la persona nunca tocó el botón, seguir los cambios del sistema
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      let guardado = null;
+      try { guardado = localStorage.getItem('tema'); } catch (err) {}
+      if (!guardado) aplicarTema(e.matches ? 'dark' : 'light');
+    });
 
     const icono = L.divIcon({
       className: 'marcador',
