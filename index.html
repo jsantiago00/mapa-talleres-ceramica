@@ -1119,7 +1119,7 @@
       }).addTo(mapa);
       mapa.getContainer().classList.toggle('oscurecer', !estilo.oscuro);
 
-      // Si el mapa no carga (por ejemplo, el dominio no está anotado en Stadia), usar OpenStreetMap
+      // Si el mapa no carga, usar OpenStreetMap
       let errores = 0;
       capaMapa.on('tileerror', () => {
         if (estiloActual === 'osm' || ++errores < 3) return;
@@ -1133,14 +1133,36 @@
     const botonTema = document.getElementById('boton-tema');
     const metaColor = document.querySelector('meta[name="theme-color"]');
 
+    let capaElegida = false;
+
     function aplicarTema(tema) {
       document.documentElement.dataset.theme = tema;
       botonTema.setAttribute('aria-label', tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
       metaColor.setAttribute('content', tema === 'dark' ? '#1d1612' : '#b4532a');
-      ponerCapaMapa();
+      if (capaElegida) ponerCapaMapa();
     }
 
     aplicarTema(document.documentElement.dataset.theme);
+
+    // Stadia no da error cuando el dominio no está anotado: manda una imagen que dice "401".
+    // Por eso primero se prueba un pedazo de mapa y, si no está autorizado, se usa OpenStreetMap.
+    function probarStadia() {
+      if (estiloActual === 'osm') return Promise.resolve(true);
+      const prueba = fetch(STADIA + 'alidade_smooth/0/0/0.png', { cache: 'no-store' })
+        .then(r => r.ok)
+        .catch(() => false);
+      const limite = new Promise(resolver => setTimeout(() => resolver(false), 4000));
+      return Promise.race([prueba, limite]);
+    }
+
+    probarStadia().then(autorizado => {
+      if (!autorizado) {
+        console.warn(`El mapa "${estiloActual}" no está autorizado para este dominio, uso OpenStreetMap. Anotá el dominio en stadiamaps.com (ver README).`);
+        estiloActual = 'osm';
+      }
+      capaElegida = true;
+      ponerCapaMapa();
+    });
 
     botonTema.addEventListener('click', () => {
       const tema = esOscuro() ? 'light' : 'dark';
