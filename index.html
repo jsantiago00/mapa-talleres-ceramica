@@ -407,9 +407,10 @@
     // URL de la imagen del logo (vacío = se muestra una vasija)
     const LOGO_URL = '';
 
-    // Estilo del mapa: 'voyager' (cálido, recomendado), 'positron' (minimalista),
-    // 'acuarela' (pintado a mano, hay que registrar el sitio en Stadia Maps) u 'osm' (clásico)
-    const ESTILO_MAPA = 'voyager';
+    // Estilo del mapa: 'suave' (limpio, recomendado), 'acuarela' (pintado a mano) u 'osm' (clásico).
+    // 'suave' y 'acuarela' son de Stadia Maps: hay que anotar el dominio del sitio en
+    // stadiamaps.com (gratis, ver README). Si fallan, el mapa pasa solo a 'osm'.
+    const ESTILO_MAPA = 'suave';
 
     const CSV_LOCAL = 'talleres-ejemplo.csv';
     const CENTRO_MENDOZA = [-32.89, -68.83];
@@ -417,21 +418,17 @@
     // Zona del Gran Mendoza: Las Heras al norte, Luján y Maipú al sur, Guaymallén al este
     const GRAN_MENDOZA = [[-33.15, -69.00], [-32.75, -68.62]];
 
-    const CARTO = 'https://{s}.basemaps.cartocdn.com/rastertiles/';
+    const STADIA = 'https://tiles.stadiamaps.com/tiles/';
     const ATRIBUCION_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-    const ATRIBUCION_CARTO = ATRIBUCION_OSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    const ATRIBUCION_STADIA = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> ' + ATRIBUCION_OSM;
     const ESTILOS = {
-      voyager: {
-        claro: { url: CARTO + 'voyager/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO },
-        oscuro: { url: CARTO + 'dark_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO }
-      },
-      positron: {
-        claro: { url: CARTO + 'light_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO },
-        oscuro: { url: CARTO + 'dark_all/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_CARTO }
+      suave: {
+        claro: { url: STADIA + 'alidade_smooth/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_STADIA },
+        oscuro: { url: STADIA + 'alidade_smooth_dark/{z}/{x}/{y}{r}.png', atribucion: ATRIBUCION_STADIA }
       },
       acuarela: {
         claro: {
-          url: 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg',
+          url: STADIA + 'stamen_watercolor/{z}/{x}/{y}.jpg',
           atribucion: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a> ' + ATRIBUCION_OSM,
           maxZoom: 16
         }
@@ -485,16 +482,25 @@
     // Capa del mapa: cambia sola entre la versión clara y la oscura según el celular
     const modoOscuro = window.matchMedia('(prefers-color-scheme: dark)');
     let capaMapa;
+    let estiloActual = ESTILOS[ESTILO_MAPA] ? ESTILO_MAPA : 'suave';
     function ponerCapaMapa() {
-      const estilo = ESTILOS[ESTILO_MAPA] ?? ESTILOS.voyager;
+      const estilo = ESTILOS[estiloActual];
       const variante = (modoOscuro.matches && estilo.oscuro) || estilo.claro;
       if (capaMapa) capaMapa.remove();
       capaMapa = L.tileLayer(variante.url, {
         maxZoom: variante.maxZoom ?? 19,
-        subdomains: 'abcd',
         attribution: variante.atribucion
       }).addTo(mapa);
       mapa.getContainer().classList.toggle('oscurecer', !estilo.oscuro);
+
+      // Si el mapa no carga (por ejemplo, el dominio no está anotado en Stadia), usar OpenStreetMap
+      let errores = 0;
+      capaMapa.on('tileerror', () => {
+        if (estiloActual === 'osm' || ++errores < 3) return;
+        console.warn(`El mapa "${estiloActual}" no carga, uso OpenStreetMap. ¿Está anotado el dominio en stadiamaps.com?`);
+        estiloActual = 'osm';
+        ponerCapaMapa();
+      });
     }
     ponerCapaMapa();
     modoOscuro.addEventListener('change', ponerCapaMapa);

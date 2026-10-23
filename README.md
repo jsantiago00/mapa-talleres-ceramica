@@ -51,10 +51,15 @@ Los talleres se cargan desde una **planilla de Google**: para agregar, cambiar o
 
    | Valor | Cómo se ve |
    |---|---|
-   | `'voyager'` (el que viene puesto) | Colores suaves y cálidos. En modo oscuro cambia solo a un mapa oscuro |
-   | `'positron'` | Casi blanco, muy minimalista |
-   | `'acuarela'` | Pintado en acuarela, sin nombres de calles. Para usarlo hay que crear una cuenta gratis en [Stadia Maps](https://stadiamaps.com) y agregar el link del sitio |
+   | `'suave'` (el que viene puesto) | Limpio y claro, con los nombres de las calles. En modo oscuro cambia solo a un mapa oscuro |
+   | `'acuarela'` | Pintado en acuarela, sin nombres de calles |
    | `'osm'` | El mapa clásico de OpenStreetMap, con mucho detalle |
+
+   `'suave'` y `'acuarela'` son de **Stadia Maps**. Son gratis, pero cuando el sitio esté en internet hay que avisarles el dominio una sola vez (no hace falta poner ninguna clave):
+   1. Creá una cuenta gratis en [client.stadiamaps.com](https://client.stadiamaps.com/signup/).
+   2. Creá una "property" y, en **Authentication → Domains**, agregá el dominio del sitio, por ejemplo `tu-usuario.github.io`.
+
+   Mientras no lo hagas, el mapa pasa solo al estilo clásico de OpenStreetMap, así que nunca queda vacío.
 
 Esto se hace una sola vez. Desde ahí, lo que cambies en la planilla aparece en el mapa solo; Google puede tardar unos 5 minutos en actualizarlo.
 
