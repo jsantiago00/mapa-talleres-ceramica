@@ -65,15 +65,27 @@ Esto se hace una sola vez. Desde ahí, lo que cambies en la planilla aparece en 
 
 > Si el link queda vacío o falla, el mapa muestra los talleres de ejemplo de `talleres-ejemplo.csv`.
 
-## 3. Sacar las coordenadas (lat / lng) desde Google Maps
+## 3. Coordenadas (lat / lng)
+
+### Automático (recomendado)
+
+La planilla puede completar `lat` y `lng` sola a partir de la dirección. Se configura una sola vez:
+
+1. En la planilla de respuestas: **Extensiones → Apps Script**.
+2. Borrá lo que aparece, pegá todo el contenido de [`apps-script/coordenadas.gs`](apps-script/coordenadas.gs) y tocá el ícono de guardar.
+3. Volvé a la planilla y recargala. Aparece un menú nuevo, **Mapa**. Tocá **Mapa → Completar coordenadas**. La primera vez Google pide permiso: elegí tu cuenta, **Configuración avanzada → Ir a ... (no seguro)** y **Permitir**. Es tu propio script, por eso Google avisa.
+4. Para que se complete solo cada vez que llega una respuesta: en Apps Script, tocá **Activadores** (el reloj, a la izquierda) → **Agregar activador**. Elegí la función `alEnviarFormulario`, la fuente **De la hoja de cálculo** y el tipo **Al enviar el formulario**, y guardá.
+
+Si la dirección es vaga (por ejemplo, solo el barrio), el script igual pone una ubicación aproximada y deja una **nota** en la celda de `lat` para que la revisen. Conviene mirar en el mapa que cada taller quedó en su lugar antes de aprobarlo.
+
+### A mano, desde Google Maps
 
 1. Buscá el taller en [Google Maps](https://maps.google.com).
 2. Hacé **click derecho** justo sobre el lugar. En el celular, mantené apretado el lugar.
 3. Arriba del menú aparecen dos números, por ejemplo `-32.9265, -68.8440`. Tocalos y se copian.
-4. El primero va en **lat** y el segundo en **lng**. Los dos son negativos en Mendoza.
+4. Pegalos en la columna **lat**, los dos juntos, y tocá **Mapa → Completar coordenadas**: el script los separa en `lat` y `lng` y los deja en el formato correcto.
 
-Si pegás los dos números juntos en la columna `lat` y dejás `lng` vacía, también funciona.
-Si una fila tiene coordenadas mal cargadas, ese taller no aparece en el mapa, pero el resto sí.
+Ojo si no usás el script: con la planilla en formato argentino, un número con punto (`-32.9265`) se guarda como texto y ese taller **no aparece** en el mapa. Hay que escribirlo con coma (`-32,9265`).
 
 ## 4. Aprobar un taller
 
