@@ -88,7 +88,13 @@ Con un Google Form, cada docente puede pedir sumarse y los datos caen directo en
    **Nombre del taller**, **Tipo de taller**, **Docente**, **Dirección**, **Departamento**, **Días y horarios**, **Instagram**, **WhatsApp**, **Foto (link)**, **Descripción**.
 2. En la pestaña **Respuestas**, tocá **Vincular con Hojas de cálculo** para que las respuestas se guarden en una planilla.
 3. En esa planilla, agregá a la derecha tres columnas más: **lat**, **lng** y **aprobado**. Las completa la Asamblea al revisar cada taller (ver puntos 3 y 4).
-4. Publicá **esa** hoja como CSV (punto 2) y usá ese link en `SHEET_CSV_URL`.
+4. **No publiques la hoja de respuestas**: tiene los correos de quienes completan el formulario y los talleres sin aprobar, y lo publicado lo puede ver cualquiera. En su lugar, creá una pestaña nueva llamada `mapa` y escribí en la celda A1:
+
+   ```
+   =QUERY('Respuestas de formulario 1'!C:O; "select * where lower(O) = 'si' or lower(O) = 'sí'"; 1)
+   ```
+
+   Esa pestaña muestra solo los talleres aprobados, sin la marca temporal ni el correo, y se actualiza sola. Publicá **esa** pestaña como CSV (punto 2) y usá ese link en `SHEET_CSV_URL`. Si agregás o sacás preguntas del formulario, revisá que las letras `C:O` y `O` (la columna `aprobado`) sigan siendo las correctas.
 5. Copiá el link del formulario (botón **Enviar**, ícono de link) y pegalo en `FORMULARIO_URL`, en `index.html`.
 
 Así aparece un botón "Sumar mi taller" al final de la lista y un link en el mensaje de bienvenida. Lo que la gente manda no se ve en el mapa hasta que alguien de la Asamblea escribe `si` en `aprobado`.
